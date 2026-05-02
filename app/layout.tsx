@@ -67,11 +67,15 @@ export const metadata: Metadata = {
 import { SafeHeader } from "@/components/safe-header"
 import { NativeBridge } from "@/components/native-bridge"
 
+import { Capacitor } from "@capacitor/core"
+
 export default function RootLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+  const isIOS = Capacitor.getPlatform() === "ios"
+
   return (
     <html lang="en" className={`${manrope.variable} antialiased`}>
       <head>
@@ -88,28 +92,35 @@ export default function RootLayout({
       <body className="font-sans bg-white text-foreground antialiased relative min-h-screen">
         <AuthProvider>
           <CartProvider>
-            <NativeBridge />
-            {/*
-              TopNav: position fixed, with padding-top driven by --safe-top CSS var.
+            {/* 
+              HARDCODED iOS SAFETY WRAPPER 
+              Forces content down by 50px on iOS to clear the Dynamic Island/Notch 
+              regardless of env(safe-area-inset-top) which was failing.
             */}
-            <TopNav />
-            {/*
-              Main scroll container — uses native body scrolling.
-              padding-top = at least 100px to clear fixed header
-              padding-bottom = at least 90px to clear fixed footer
-            */}
-            <main
-              className="w-full relative"
-              style={{ 
-                paddingTop: '100px',
-                paddingBottom: '90px' 
-              }}
-            >
-              {children}
-            </main>
-            {/* BottomNav is position:fixed internally */}
-            <BottomNav />
-            <Toaster />
+            <div style={{ paddingTop: isIOS ? "50px" : "0px" }} className="w-full min-h-screen flex flex-col">
+              <NativeBridge />
+              {/*
+                TopNav: position fixed, with padding-top driven by --safe-top CSS var.
+              */}
+              <TopNav />
+              {/*
+                Main scroll container — uses native body scrolling.
+                padding-top = at least 100px to clear fixed header
+                padding-bottom = at least 90px to clear fixed footer
+              */}
+              <main
+                className="w-full relative flex-1"
+                style={{ 
+                  paddingTop: "100px",
+                  paddingBottom: "90px" 
+                }}
+              >
+                {children}
+              </main>
+              {/* BottomNav is position:fixed internally */}
+              <BottomNav />
+              <Toaster />
+            </div>
           </CartProvider>
         </AuthProvider>
       </body>

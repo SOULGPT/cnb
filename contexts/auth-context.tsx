@@ -219,16 +219,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signInWithGoogle = useCallback(async () => {
     setAuthError(null)
     try {
-      const { GoogleAuthProvider, signInWithPopup } = await import("firebase/auth")
+      const { GoogleAuthProvider, signInWithPopup, signInWithCredential } = await import("firebase/auth")
       const { doc, getDoc, setDoc, serverTimestamp } = await import("firebase/firestore")
 
       const [auth, db] = await Promise.all([getFirebaseAuth(), getFirebaseDb()])
       if (!auth || !db) throw new Error("Firebase not available")
 
-      const provider = new GoogleAuthProvider()
-      provider.setCustomParameters({ prompt: "select_account" })
+      let result: any
 
-      const result = await signInWithPopup(auth, provider)
+      // Check if running on a native Capacitor platform (iOS/Android)
+      const isNative = typeof window !== "undefined" && (window as any).Capacitor?.isNativePlatform?.() === true
+
+      if (isNative) {
+        // Use the native Capacitor Google Auth plugin
+        const { GoogleAuth } = await import("@codetrix-studio/capacitor-google-auth")
+        const googleUser = await GoogleAuth.signIn()
+        const credential = GoogleAuthProvider.credential(googleUser.authentication.idToken)
+        result = await signInWithCredential(auth, credential)
+      } else {
+        // Standard web popup flow
+        const provider = new GoogleAuthProvider()
+        provider.setCustomParameters({ prompt: "select_account" })
+        result = await signInWithPopup(auth, provider)
+      }
 
       const userDoc = await getDoc(doc(db, "users", result.user.uid))
       if (!userDoc.exists()) {
@@ -244,6 +257,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         })
       }
     } catch (error: any) {
+      console.error("Google Sign-In Error:", error)
       if (error.code === "auth/popup-closed-by-user") {
         setAuthError("Sign-in cancelled")
       } else if (error.code === "auth/popup-blocked") {
@@ -267,42 +281,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       let result: any
 
       // Check if running on a native Capacitor platform (iOS/Android)
-      // signInWithPopup is blocked by WKWebView in TestFlight
-      const isNative = typeof window !== 'undefined' &&
-        (window as any).Capacitor?.isNativePlatform?.() === true
+      const isNative = typeof window !== "undefined" && (window as any).Capacitor?.isNativePlatform?.() === true
 
       if (isNative) {
         // Use the native Capacitor Apple Sign-In plugin
-        const { SignInWithApple } = await import('@capacitor-community/apple-sign-in')
-        
+        const { SignInWithApple } = await import("@capacitor-community/apple-sign-in")
+
         const appleResult = await SignInWithApple.authorize({
-          clientId: 'com.curryandburger.app',
-          redirectURI: 'https://curryandburger.vercel.app',
-          scopes: 'email name',
-          state: Math.random().toString(36).substring(2),
-          nonce: Math.random().toString(36).substring(2),
+          clientId: "com.curryandburger.app",
+          redirectURI: "https://curryandburger.vercel.app",
+          scopes: "email name",
         })
 
         // Build a Firebase OAuthCredential from the native Apple token
-        const provider = new OAuthProvider('apple.com')
+        const provider = new OAuthProvider("apple.com")
         const credential = provider.credential({
           idToken: appleResult.response.identityToken,
-          rawNonce: appleResult.response.authorizationCode,
         })
 
         result = await signInWithCredential(auth, credential)
       } else {
         // Standard web popup flow
-        const provider = new OAuthProvider('apple.com')
-        provider.addScope('email')
-        provider.addScope('name')
+        const provider = new OAuthProvider("apple.com")
+        provider.addScope("email")
+        provider.addScope("name")
         result = await signInWithPopup(auth, provider)
       }
 
       // Create user doc in Firestore if first-time sign-in
       const userDoc = await getDoc(doc(db, "users", result.user.uid))
       if (!userDoc.exists()) {
-        const displayName = result.user.displayName || (result.user.email ? result.user.email.split('@')[0] : "User")
+        const displayName = result.user.displayName || (result.user.email ? result.user.email.split("@")[0] : "User")
         await setDoc(doc(db, "users", result.user.uid), {
           email: result.user.email || "",
           name: displayName,
@@ -315,7 +324,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         })
       }
     } catch (error: any) {
-      if (error.code === "auth/popup-closed-by-user" || error.code === 'SIGN_IN_CANCELLED') {
+      console.error("Apple Sign-In Error:", error)
+      if (error.code === "auth/popup-closed-by-user" || error.code === "SIGN_IN_CANCELLED") {
         setAuthError("Sign-in cancelled")
       } else if (error.code === "auth/popup-blocked") {
         setAuthError("Pop-up blocked. Please allow pop-ups.")

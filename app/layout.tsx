@@ -90,20 +90,19 @@ export default function RootLayout({
           <CartProvider>
             <NativeBridge />
             {/*
-              SafeHeader: Wraps TopNav with a guaranteed status bar spacer.
-              Position fixed, solid background.
+              TopNav: position fixed, with padding-top driven by --safe-top CSS var.
             */}
-            <SafeHeader />
+            <TopNav />
             {/*
               Main scroll container — uses native body scrolling.
-              padding-top = header height (approx 100px)
-              padding-bottom = bottom nav height (approx 90px)
+              padding-top = at least 100px to clear fixed header
+              padding-bottom = at least 90px to clear fixed footer
             */}
             <main
               className="w-full relative"
               style={{ 
-                paddingTop: 'calc(max(44px, var(--safe-top, 44px)) + 56px)',
-                paddingBottom: 'calc(max(34px, var(--safe-bottom, 34px)) + 80px)' 
+                paddingTop: '100px',
+                paddingBottom: '90px' 
               }}
             >
               {children}

@@ -155,8 +155,9 @@
     /* Hardware acceleration for smooth scrolling and animations */
     transform: translateZ(0);
     backface-visibility: hidden;
-    /* Prevent overscroll bounce on iOS */
-    overscroll-behavior-y: none;
+    /* Prevent overscroll bounce on iOS to make it feel more like a native app */
+    overscroll-behavior: none;
+    overflow-x: hidden;
   }
 
   /* Optimize image rendering */

@@ -31,7 +31,7 @@ export function BottomNav() {
         left: 0,
         right: 0,
         zIndex: 50,
-        paddingBottom: 'max(34px, var(--safe-bottom, 34px))',
+        paddingBottom: 'var(--safe-bottom, 34px)',
       }}
     >
       <div className="flex h-14">

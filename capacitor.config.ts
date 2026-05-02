@@ -8,9 +8,8 @@ const config: CapacitorConfig = {
     url: 'https://curryandburger.vercel.app',
     cleartext: true
   },
+  bundledWebRuntime: false,
   ios: {
-    // 'never' = let CSS/WebView own safe area insets via env() — do NOT let Capacitor override them.
-    // Using 'always' would cause Capacitor to zero-out the insets, breaking env(safe-area-inset-*).
     contentInset: 'never',
   },
 };

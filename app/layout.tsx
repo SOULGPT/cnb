@@ -64,6 +64,9 @@ export const metadata: Metadata = {
   },
 }
 
+import { SafeHeader } from "@/components/safe-header"
+import { NativeBridge } from "@/components/native-bridge"
+
 export default function RootLayout({
   children,
 }: {
@@ -85,21 +88,22 @@ export default function RootLayout({
       <body className="font-sans bg-white text-foreground antialiased relative min-h-screen">
         <AuthProvider>
           <CartProvider>
+            <NativeBridge />
             {/*
-              TopNav: position fixed, with padding-top driven by --safe-top CSS var (with 44px fallback).
-              This pushes the header content below the Dynamic Island / notch.
+              SafeHeader: Wraps TopNav with a guaranteed status bar spacer.
+              Position fixed, solid background.
             */}
-            <TopNav />
+            <SafeHeader />
             {/*
               Main scroll container — uses native body scrolling.
-              padding-top = header height + safe-top
-              padding-bottom = bottom nav height + safe-bottom
+              padding-top = header height (approx 100px)
+              padding-bottom = bottom nav height (approx 90px)
             */}
             <main
               className="w-full relative"
               style={{ 
-                marginTop: 'calc(var(--safe-top, 44px) + 56px)',
-                paddingBottom: 'calc(var(--safe-bottom, 34px) + 80px)' 
+                paddingTop: 'calc(max(44px, var(--safe-top, 44px)) + 56px)',
+                paddingBottom: 'calc(max(34px, var(--safe-bottom, 34px)) + 80px)' 
               }}
             >
               {children}

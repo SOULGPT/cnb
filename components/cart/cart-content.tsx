@@ -154,7 +154,7 @@ export function CartContent() {
       <div className="lg:col-span-1">
         <Card 
           className="p-6 sticky"
-          style={{ top: 'calc(var(--safe-top, 44px) + 56px + 24px)' }}
+          style={{ top: 'calc(max(44px, var(--safe-top, 44px)) + 56px + 24px)' }}
         >
           <h2 className="text-xl font-bold text-foreground mb-6">Order Summary</h2>
 

@@ -8,17 +8,21 @@ import { useAuth } from "@/contexts/auth-context"
 import { useState } from "react"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 
+import { Capacitor } from "@capacitor/core"
+
 export function TopNav() {
   const { totalItems } = useCart()
   const { user } = useAuth()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const isIOS = Capacitor.getPlatform() === "ios"
 
   return (
     <header 
       className="fixed top-0 left-0 right-0 z-50 w-full bg-white border-b border-gray-200 shadow-sm"
       style={{ 
-        paddingTop: 'var(--safe-top, 44px)',
-        // Force a solid background for the status bar area
+        // Hardcoded 60px safety for iOS Notch/Dynamic Island 
+        // as env() variables were failing in TestFlight
+        paddingTop: isIOS ? '60px' : '0px',
         backgroundColor: 'white'
       }}
     >

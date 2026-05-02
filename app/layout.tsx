@@ -94,24 +94,24 @@ export default function RootLayout({
           <CartProvider>
             {/* 
               HARDCODED iOS SAFETY WRAPPER 
-              Forces content down by 50px on iOS to clear the Dynamic Island/Notch 
+              Forces content down by 60px on iOS to clear the Dynamic Island/Notch 
               regardless of env(safe-area-inset-top) which was failing.
             */}
-            <div style={{ paddingTop: isIOS ? "50px" : "0px" }} className="w-full min-h-screen flex flex-col">
+            <div style={{ paddingTop: isIOS ? "60px" : "0px" }} className="w-full min-h-screen flex flex-col bg-white">
               <NativeBridge />
               {/*
-                TopNav: position fixed, with padding-top driven by --safe-top CSS var.
+                TopNav: position fixed, with solid background.
               */}
               <TopNav />
               {/*
                 Main scroll container — uses native body scrolling.
-                padding-top = at least 100px to clear fixed header
+                padding-top = at least 120px to clear fixed header (60px safe + 56px nav)
                 padding-bottom = at least 90px to clear fixed footer
               */}
               <main
                 className="w-full relative flex-1"
                 style={{ 
-                  paddingTop: "100px",
+                  paddingTop: "120px",
                   paddingBottom: "90px" 
                 }}
               >

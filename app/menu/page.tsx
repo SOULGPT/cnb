@@ -22,7 +22,7 @@ export default function MenuPage() {
         */}
         <div 
           className="sticky z-30 bg-white border-b border-gray-100"
-          style={{ top: '100px' }}
+          style={{ top: '120px' }}
         >
           <div className="max-w-7xl mx-auto">
             <MenuCategoryTabs />

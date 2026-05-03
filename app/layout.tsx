@@ -69,6 +69,8 @@ import { NativeBridge } from "@/components/native-bridge"
 
 import { Capacitor } from "@capacitor/core"
 
+import { SpeedInsights } from "@vercel/speed-insights/next"
+
 export default function RootLayout({
   children,
 }: {
@@ -120,6 +122,7 @@ export default function RootLayout({
               {/* BottomNav is position:fixed internally */}
               <BottomNav />
               <Toaster />
+              <SpeedInsights />
             </div>
           </CartProvider>
         </AuthProvider>

@@ -93,6 +93,7 @@ export interface CartItem {
   isDeal?: boolean
   dealId?: string
   dealTitle?: string
+  dealType?: "regular" | "upgrade"
   dealSelections?: DealSelection[]
   removedItems?: string[]
   totalPrice: number
@@ -270,4 +271,27 @@ export interface FriesOption {
   size: "small" | "medium" | "large"
   name: string
   extraPrice: number
+}
+
+export type BannerTemplateId = "orange-heat" | "summer-gradient" | "dark-emerald" | "split" | "hero-card"
+
+export interface HomeBanner {
+  id: string
+  title: string
+  subtitle?: string
+  price?: string
+  imageUrl: string
+  templateId: BannerTemplateId
+  backgroundColor?: string
+  backgroundGradient?: {
+    from: string
+    to: string
+    direction: string
+  }
+  actionType: "link" | "category" | "item" | "deal"
+  actionValue: string // URL, categoryId, itemId, or dealId
+  startTime?: string // "HH:mm"
+  endTime?: string // "HH:mm"
+  order: number
+  isActive: boolean
 }

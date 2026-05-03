@@ -4,9 +4,10 @@ import { useEffect } from "react"
 import { useSearchParams } from "next/navigation"
 import { FloatingCartButton } from "@/components/floating-cart-button"
 import { HeroSection } from "@/components/home/hero-section"
-import { QuickActions } from "@/components/home/quick-actions"
 import { FeaturedItems } from "@/components/home/featured-items"
 import { PromoBanner } from "@/components/home/promo-banner"
+
+import { DynamicBanners } from "@/components/home/dynamic-banners"
 
 export default function HomePage() {
   const searchParams = useSearchParams()
@@ -29,9 +30,9 @@ export default function HomePage() {
   }, [searchParams])
 
   return (
-    <div className="bg-background">
+    <div className="bg-background pb-20">
       <HeroSection />
-      <QuickActions />
+      <DynamicBanners />
       <PromoBanner />
       <FeaturedItems />
       <FloatingCartButton />

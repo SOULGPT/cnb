@@ -72,34 +72,56 @@ export const CartItemCard = memo(function CartItemCard({ item }: CartItemCardPro
 
         {/* Details */}
         <div className="flex-1 min-w-0">
-          <div className="flex justify-between items-start mb-2 gap-2">
+          <div className="flex justify-between items-start mb-1 gap-2">
             <div className="flex-1 min-w-0">
-              <h3 className="font-bold text-foreground text-sm md:text-base text-balance truncate">
-                {item.menuItem?.name || "Unknown item"}
+              <h3 className="font-bold text-foreground text-sm md:text-base text-balance leading-tight">
+                {isDeal ? item.dealTitle : (item.menuItem?.name || "Unknown item")}
               </h3>
 
+              {item.dealType && (
+                <Badge variant="secondary" className="mt-1 text-[10px] h-4 bg-[#7B1E2D]/10 text-[#7B1E2D] border-[#7B1E2D]/20">
+                  {item.dealType.toUpperCase()} MEAL
+                </Badge>
+              )}
+
               {spiceLevelInfo && (
-                <Badge variant="outline" className={`mt-1 text-xs font-semibold ${spiceLevelInfo.color} border`}>
-                  <Flame className="w-3 h-3 mr-1" />
+                <Badge variant="outline" className={`mt-1 text-[10px] h-4 font-semibold ${spiceLevelInfo.color} border`}>
+                  <Flame className="w-2.5 h-2.5 mr-1" />
                   {spiceLevelInfo.icon} {spiceLevelInfo.label}
                 </Badge>
+              )}
+
+              {/* Deal Selections (Fries, Drink) */}
+              {isDeal && item.dealSelections && item.dealSelections.length > 0 && (
+                <div className="mt-1.5 space-y-0.5">
+                  {item.dealSelections.map((selection, idx) => (
+                    <div key={idx} className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <span className="w-1 h-1 rounded-full bg-[#E78A00]" />
+                      <span className="font-medium text-[11px]">{selection.category}:</span>
+                      <span className="text-[11px]">{selection.itemName}</span>
+                      {selection.extraPrice > 0 && (
+                        <span className="text-[#E78A00] font-bold text-[10px]">(+€{selection.extraPrice.toFixed(2)})</span>
+                      )}
+                    </div>
+                  ))}
+                </div>
               )}
 
               {item.customizations && item.customizations.length > 0 && (
                 <div className="mt-1">
                   <button
                     onClick={() => setShowDetails(!showDetails)}
-                    className="flex items-center gap-1 text-xs text-[#E78A00] hover:underline"
+                    className="flex items-center gap-1 text-[11px] text-[#E78A00] font-bold hover:underline"
                   >
                     {showDetails ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-                    {showDetails ? "Hide" : "Show"} details
+                    {showDetails ? "Hide" : "Show"} customizations
                   </button>
 
                   {showDetails && (
-                    <div className="mt-2 p-2 bg-muted/50 rounded-lg text-xs space-y-1">
+                    <div className="mt-2 p-2 bg-muted/50 rounded-lg text-[11px] space-y-1 border border-gray-100">
                       {item.customizations.map((custom, idx) => (
                         <div key={custom.customizationId || idx}>
-                          <span className="font-medium">{custom.customizationName}:</span>
+                          <span className="font-bold">{custom.customizationName}:</span>
                           <ul className="ml-2">
                             {custom.options
                               ?.filter((opt) => opt && opt.name)
@@ -114,26 +136,22 @@ export const CartItemCard = memo(function CartItemCard({ item }: CartItemCardPro
                           </ul>
                         </div>
                       ))}
-
-                      {item.removedItems && item.removedItems.length > 0 && (
-                        <div className="text-red-600">
-                          <span className="font-medium">Removed:</span> {item.removedItems.join(", ")}
-                        </div>
-                      )}
                     </div>
                   )}
                 </div>
               )}
 
-              {!showDetails && item.customizations && item.customizations.length > 0 && (
-                <p className="text-xs text-muted-foreground mt-1 truncate">
-                  {item.customizations
-                    .flatMap((c) => c.options?.map((o) => o.name) || [])
-                    .filter(Boolean)
-                    .slice(0, 3)
-                    .join(", ")}
-                  {item.customizations.flatMap((c) => c.options || []).length > 3 && "..."}
-                </p>
+              {item.removedItems && item.removedItems.length > 0 && (
+                <div className="mt-1 text-[10px] text-red-500 font-bold flex items-center gap-1">
+                  <span className="bg-red-100 px-1 rounded uppercase tracking-tighter">No</span>
+                  {item.removedItems.join(", ")}
+                </div>
+              )}
+
+              {item.note && (
+                <div className="mt-1.5 text-[10px] italic text-muted-foreground bg-gray-50 p-1 rounded border-l-2 border-gray-200">
+                  "{item.note}"
+                </div>
               )}
             </div>
             <Button
@@ -141,7 +159,7 @@ export const CartItemCard = memo(function CartItemCard({ item }: CartItemCardPro
               size="icon"
               onClick={handleRemove}
               disabled={isRemoving}
-              className="text-destructive hover:text-destructive h-8 w-8 flex-shrink-0"
+              className="text-destructive hover:text-destructive h-8 w-8 flex-shrink-0 -mt-1"
             >
               {isRemoving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
             </Button>

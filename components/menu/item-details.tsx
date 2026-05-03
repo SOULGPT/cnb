@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -11,17 +11,14 @@ import { Textarea } from "@/components/ui/textarea"
 import type { MenuItem, SelectedCustomization } from "@/types"
 import { CUSTOMIZATION_OPTIONS, REMOVABLE_ITEMS } from "@/lib/constants"
 import { useCart } from "@/contexts/cart-context"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
 import { DealBuilderDialog } from "@/components/deals/deal-builder-dialog"
+import { useMenuCategories } from "@/hooks/use-menu-categories"
 
 interface ItemDetailsProps {
   item: MenuItem
 }
-
-const FAST_FOOD_CATEGORIES = ["burgers", "wraps", "tacos", "featured"]
-const DESI_FOOD_CATEGORIES = ["indpak", "curries", "tandoori", "rice"]
-const BREAD_CATEGORIES = ["naan"]
 
 const SPICE_LEVELS = [
   { value: "no-spicy", label: "No Spicy", icon: "🌱", description: "No heat" },
@@ -31,6 +28,7 @@ const SPICE_LEVELS = [
 ] as const
 
 export function ItemDetails({ item }: ItemDetailsProps) {
+  const { getCategoryById } = useMenuCategories()
   const [quantity, setQuantity] = useState(1)
   const [selectedExtras, setSelectedExtras] = useState<Record<string, number>>({})
   const [removedItems, setRemovedItems] = useState<string[]>([])
@@ -41,13 +39,60 @@ export function ItemDetails({ item }: ItemDetailsProps) {
   const router = useRouter()
   const { toast } = useToast()
 
+  const searchParams = useSearchParams()
+  const mode = searchParams.get("mode")
+
+  const category = useMemo(() => {
+    return getCategoryById(item.categoryId || "")
+  }, [item.categoryId, getCategoryById])
+
+  const categoryName = (category?.name || "").toLowerCase()
+
   const isFastFood = useMemo(() => {
-    return FAST_FOOD_CATEGORIES.includes(item.categoryId || "")
-  }, [item.categoryId])
+    const nameLower = (item.name || "").toLowerCase()
+    const catNameLower = (category?.name || "").toLowerCase()
+    return (
+      catNameLower.includes("burger") || 
+      catNameLower.includes("tacco") || 
+      catNameLower.includes("wrap") || 
+      catNameLower.includes("combo") ||
+      catNameLower.includes("deal") ||
+      nameLower.includes("burger") ||
+      nameLower.includes("tacco") ||
+      nameLower.includes("zinger") ||
+      nameLower.includes("nugget") ||
+      nameLower.includes("classic") ||
+      nameLower.includes("cheese")
+    )
+  }, [category?.name, item.name])
 
   const isDesiFood = useMemo(() => {
-    return DESI_FOOD_CATEGORIES.includes(item.categoryId || "") && !BREAD_CATEGORIES.includes(item.categoryId || "")
-  }, [item.categoryId])
+    const nameLower = (item.name || "").toLowerCase()
+    const catNameLower = (category?.name || "").toLowerCase()
+    return (
+      (catNameLower.includes("chicken") || 
+       catNameLower.includes("lamb") || 
+       catNameLower.includes("beef") || 
+       catNameLower.includes("shrimp") || 
+       catNameLower.includes("vegetariano") || 
+       catNameLower.includes("rice") ||
+       catNameLower.includes("grigliata") ||
+       nameLower.includes("curry") ||
+       nameLower.includes("masala") ||
+       nameLower.includes("korma") ||
+       nameLower.includes("karahi") ||
+       nameLower.includes("briyani")) && 
+      !catNameLower.includes("combo") &&
+      !nameLower.includes("burger") &&
+      !nameLower.includes("tacco")
+    )
+  }, [category?.name, item.name])
+
+  useEffect(() => {
+    if (mode === "deal" && isFastFood) {
+      setShowDealBuilder(true)
+    }
+  }, [mode, isFastFood])
 
   const availableExtras = useMemo(() => {
     return item.customOptions?.length ? item.customOptions : CUSTOMIZATION_OPTIONS
@@ -411,21 +456,10 @@ export function ItemDetails({ item }: ItemDetailsProps) {
           </Card>
 
           <div className="space-y-3">
-            <Button
-              size="lg"
-              className="w-full bg-[#E78A00] hover:bg-[#C67500] text-white text-lg py-6 rounded-xl shadow-lg hover:shadow-xl transition-all"
-              onClick={handleAddToCart}
-              disabled={!item.available || (isDesiFood && !spiceLevel)}
-            >
-              <ShoppingCart className="w-5 h-5 mr-2" />
-              Add to Cart - €{safePrice(calculateTotalPrice)}
-            </Button>
-
             {isFastFood && (
               <Button
                 size="lg"
-                variant="outline"
-                className="w-full border-2 border-[#7B1E2D] text-[#7B1E2D] hover:bg-[#7B1E2D] hover:text-white text-lg py-6 rounded-xl transition-all bg-transparent"
+                className="w-full bg-[#E78A00] hover:bg-[#C67500] text-white text-lg py-6 rounded-xl shadow-lg hover:shadow-xl transition-all border-2 border-[#E78A00]"
                 onClick={() => setShowDealBuilder(true)}
                 disabled={!item.available}
               >
@@ -433,6 +467,21 @@ export function ItemDetails({ item }: ItemDetailsProps) {
                 Order As Deal - Save More!
               </Button>
             )}
+
+            <Button
+              size="lg"
+              variant={isFastFood ? "outline" : "default"}
+              className={`w-full text-lg py-6 rounded-xl transition-all ${
+                isFastFood 
+                  ? "border-2 border-gray-200 text-gray-600 hover:bg-gray-50 bg-transparent" 
+                  : "bg-[#E78A00] hover:bg-[#C67500] text-white shadow-lg hover:shadow-xl"
+              }`}
+              onClick={handleAddToCart}
+              disabled={!item.available || (isDesiFood && !spiceLevel)}
+            >
+              <ShoppingCart className="w-5 h-5 mr-2" />
+              Add Single Item - €{safePrice(calculateTotalPrice)}
+            </Button>
           </div>
 
           {!item.available && (

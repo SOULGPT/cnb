@@ -4,25 +4,37 @@ import { useMenuCategories } from "@/hooks/use-menu-categories"
 import { useMenuContext } from "@/contexts/menu-context"
 import { Loader2 } from "lucide-react"
 import { useRef, useEffect } from "react"
+import { useSearchParams } from "next/navigation"
 
 export function MenuCategoryTabs() {
   const { selectedCategory, setSelectedCategory } = useMenuContext()
   const { categories, loading } = useMenuCategories()
+  const searchParams = useSearchParams()
+  const categoryParam = searchParams.get("category")
   const scrollRef = useRef<HTMLDivElement>(null)
   const activeRef = useRef<HTMLButtonElement>(null)
 
   const validCategories = categories.filter((cat) => cat.name && cat.name.trim() !== "")
 
-  // Auto-select first category if current selection is not in the list
+  // Handle initial category from URL and auto-select
   useEffect(() => {
     if (validCategories.length > 0) {
+      // Priority 1: URL Parameter
+      if (categoryParam) {
+        const found = validCategories.find(cat => cat.id === categoryParam || cat.name.toLowerCase() === categoryParam.toLowerCase())
+        if (found && found.id !== selectedCategory) {
+          setSelectedCategory(found.id)
+          return
+        }
+      }
+
+      // Priority 2: Current selection validation
       const categoryExists = validCategories.some(cat => cat.id === selectedCategory)
-      if (!categoryExists) {
-        console.log("[v0] MenuCategoryTabs: Auto-selecting first category:", validCategories[0].id)
+      if (!categoryExists && !categoryParam) {
         setSelectedCategory(validCategories[0].id)
       }
     }
-  }, [validCategories, selectedCategory, setSelectedCategory])
+  }, [validCategories, categoryParam, setSelectedCategory, selectedCategory])
 
   // Auto-scroll to active category
   useEffect(() => {

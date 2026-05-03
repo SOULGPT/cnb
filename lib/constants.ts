@@ -81,16 +81,14 @@ export const FRIES_OPTIONS: FriesOption[] = [
   { size: "large", name: "Large Fries", extraPrice: 1.5 },
 ]
 
-export const DRINKS_OPTIONS = [
-  "Coca-Cola",
-  "Coca-Cola Zero",
-  "Fanta",
-  "Sprite",
-  "Pepsi",
-  "Water",
-  "Orange Juice",
-  "Apple Juice",
-  "Iced Tea",
+export const DRINK_ITEMS = [
+  { id: "coke", name: "Coca-Cola", imageUrl: "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?q=80&w=200&auto=format&fit=crop" },
+  { id: "coke-zero", name: "Coca-Cola Zero", imageUrl: "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?q=80&w=200&auto=format&fit=crop" },
+  { id: "fanta", name: "Fanta", imageUrl: "https://images.unsplash.com/photo-1624517452488-04869289c4ca?q=80&w=200&auto=format&fit=crop" },
+  { id: "sprite", name: "Sprite", imageUrl: "https://images.unsplash.com/photo-1625772299848-391b6a87d7b3?q=80&w=200&auto=format&fit=crop" },
+  { id: "pepsi", name: "Pepsi", imageUrl: "https://images.unsplash.com/photo-1553456558-aff63285bdd1?q=80&w=200&auto=format&fit=crop" },
+  { id: "water", name: "Water", imageUrl: "https://images.unsplash.com/photo-1548839140-29a749e1cf4d?q=80&w=200&auto=format&fit=crop" },
+  { id: "orange-juice", name: "Orange Juice", imageUrl: "https://images.unsplash.com/photo-1613478223719-2ab802602423?q=80&w=200&auto=format&fit=crop" },
 ]
 
 export const DEFAULT_INGREDIENTS = {

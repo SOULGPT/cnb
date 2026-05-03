@@ -15,6 +15,7 @@ import { IngredientManager } from "./ingredient-manager"
 import { QRCodeGenerator } from "./qr-code-generator"
 import { DealsPromotionsManager } from "./deals-promotions-manager"
 import { CategoryManager } from "./category-manager"
+import { HomeBannersManager } from "@/components/admin/home-banners-manager"
 import {
   Loader2,
   ShieldAlert,
@@ -37,6 +38,7 @@ import {
   QrCode,
   Ticket,
   FolderOpen,
+  Layout,
 } from "lucide-react"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
@@ -55,6 +57,7 @@ import { cn } from "@/lib/utils"
 const menuItems = [
   { id: "dashboard", label: "Dashboard Overview", icon: LayoutDashboard },
   { id: "orders", label: "Orders Management", icon: ShoppingBag },
+  { id: "banners", label: "Home Banners", icon: Layout },
   { id: "menu", label: "Menu Management", icon: Menu },
   { id: "categories", label: "Menu Categories", icon: FolderOpen },
   { id: "ingredients", label: "Ingredients", icon: Utensils },
@@ -138,6 +141,8 @@ export function AdminDashboard() {
         return <MenuManager />
       case "categories":
         return <CategoryManager />
+      case "banners":
+        return <HomeBannersManager />
       case "ingredients":
         return <IngredientManager />
       case "qr-codes":

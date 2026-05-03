@@ -28,7 +28,7 @@ export async function setupHomeBannersListener() {
 
   try {
     const { collection, onSnapshot, query, where } = await import("firebase/firestore")
-    const bannerRef = collection(db, "home_banners")
+    const bannerRef = collection(db, "banners")
     
     // Subscribe to all banners (admin will filter in UI if needed)
     bannerUnsubscribe = onSnapshot(
@@ -65,7 +65,7 @@ export async function addHomeBanner(banner: Omit<HomeBanner, "id">): Promise<str
   if (!db) throw new Error("Firebase not initialized")
   
   const { collection, addDoc } = await import("firebase/firestore")
-  const docRef = await addDoc(collection(db, "home_banners"), banner)
+  const docRef = await addDoc(collection(db, "banners"), banner)
   return docRef.id
 }
 
@@ -74,7 +74,7 @@ export async function updateHomeBanner(id: string, updates: Partial<HomeBanner>)
   if (!db) throw new Error("Firebase not initialized")
   
   const { doc, updateDoc } = await import("firebase/firestore")
-  await updateDoc(doc(db, "home_banners", id), updates)
+  await updateDoc(doc(db, "banners", id), updates)
 }
 
 export async function deleteHomeBanner(id: string) {
@@ -82,5 +82,5 @@ export async function deleteHomeBanner(id: string) {
   if (!db) throw new Error("Firebase not initialized")
   
   const { doc, deleteDoc } = await import("firebase/firestore")
-  await deleteDoc(doc(db, "home_banners", id))
+  await deleteDoc(doc(db, "banners", id))
 }

@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Plus, Trash2, Edit2, GripVertical, Save, X, Eye, Upload, Search, Check } from "lucide-react"
+import { Plus, Trash2, Edit2, GripVertical, Save, X, Eye, Upload, Search, Check, Loader2 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { Badge } from "@/components/ui/badge"
 import { useMenuItems } from "@/hooks/use-menu-items"
@@ -47,13 +47,21 @@ export function HomeBannersManager() {
         body: formData,
       })
 
-      if (!res.ok) throw new Error("Upload failed")
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.error || `Upload failed: ${res.statusText}`);
+      }
 
       const data = await res.json()
       setEditingBanner(prev => ({ ...prev, imageUrl: data.url }))
-      toast({ title: "Success", description: "Image uploaded successfully" })
-    } catch (error) {
-      toast({ title: "Error", description: "Image upload failed", variant: "destructive" })
+      toast({ title: "Success", description: "Image uploaded and auto-resized successfully" })
+    } catch (error: any) {
+      console.error("Upload error:", error)
+      toast({ 
+        title: "Upload Failed", 
+        description: error.message || "Please check your internet and try again.", 
+        variant: "destructive" 
+      })
     } finally {
       setUploading(false)
     }
@@ -180,8 +188,12 @@ export function HomeBannersManager() {
                   </div>
                 </div>
                 {editingBanner.imageUrl && (
-                  <div className="mt-2 w-full h-32 rounded-lg border overflow-hidden bg-muted">
-                    <img src={editingBanner.imageUrl} alt="Preview" className="w-full h-full object-cover" />
+                  <div className="mt-2 w-full aspect-video rounded-lg border overflow-hidden bg-muted">
+                    <img 
+                      src={editingBanner.imageUrl} 
+                      alt="Preview" 
+                      className="w-full h-full object-cover" 
+                    />
                   </div>
                 )}
               </div>
@@ -360,7 +372,7 @@ export function HomeBannersManager() {
             <div className="cursor-move text-muted-foreground">
               <GripVertical className="w-5 h-5" />
             </div>
-            <div className="w-24 h-16 rounded-lg overflow-hidden bg-muted flex-shrink-0">
+            <div className="w-32 h-20 rounded-lg overflow-hidden bg-muted flex-shrink-0 border">
               <img src={banner.imageUrl} alt="" className="w-full h-full object-cover" />
             </div>
             <div className="flex-1 min-w-0">

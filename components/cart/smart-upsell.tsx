@@ -4,6 +4,7 @@
 import { useState, useEffect, useMemo } from "react"
 import { useCart } from "@/contexts/cart-context"
 import { useMenuItems } from "@/hooks/use-menu-items"
+import { useMenuCategories } from "@/hooks/use-menu-categories"
 import { CheckoutOffer, MenuItem } from "@/types"
 import { subscribeToCheckoutOffers } from "@/lib/firebase-offers"
 import { Button } from "@/components/ui/button"
@@ -14,6 +15,7 @@ import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
 export function SmartUpsell() {
   const { items: cartItems, addItem } = useCart()
   const { items: allMenuItems, loading: itemsLoading } = useMenuItems()
+  const { categories: allCategories } = useMenuCategories()
   const [offers, setOffers] = useState<CheckoutOffer[]>([])
 
   useEffect(() => {
@@ -38,17 +40,25 @@ export function SmartUpsell() {
 
     // 2. Find matching rules
     const activeOffers = offers.filter(o => o.isActive)
+    const cartCategories = Array.from(new Set(cartItems.map(item => item.menuItem.categoryId)))
+    const cartCategoryNames = Array.from(new Set(cartItems.map(item => {
+      // Find category name in allCategories (we need to fetch categories too)
+      return allCategories.find(c => c.id === item.menuItem.categoryId)?.name || ""
+    })))
     
     let suggestedIds: string[] = []
 
-    // Check category-specific rules
+    // Check category-specific rules (by ID or Title match)
     activeOffers.forEach(offer => {
-      if (offer.sourceCategoryId && cartCategoryIds.includes(offer.sourceCategoryId)) {
+      const isMatch = (offer.sourceCategoryId && cartCategories.includes(offer.sourceCategoryId)) ||
+                     (offer.title && cartCategoryNames.some(name => offer.title?.toLowerCase().includes(name.toLowerCase())))
+      
+      if (isMatch) {
         suggestedIds = [...suggestedIds, ...offer.suggestedItemIds]
       }
     })
 
-    // ALWAYS add global fallbacks to ensure the section isn't empty
+    // ALWAYS add global fallbacks as a safety net
     const fallbacks = activeOffers.filter(o => o.isGlobalFallback)
     fallbacks.forEach(offer => {
       suggestedIds = [...suggestedIds, ...offer.suggestedItemIds]
@@ -63,9 +73,9 @@ export function SmartUpsell() {
       .filter((m): m is MenuItem => !!m && m.available)
       .slice(0, 10)
 
-    console.log(`[SmartUpsell] Found ${finalItems.length} recommendations. Cart Categories:`, cartCategoryIds)
+    console.log(`[SmartUpsell] Matching with:`, { cartCategories, cartCategoryNames, found: finalItems.length })
     return finalItems
-  }, [cartItems, allMenuItems, offers, itemsLoading])
+  }, [cartItems, allMenuItems, allCategories, offers, itemsLoading])
 
   if (recommendedItems.length === 0) return null
 

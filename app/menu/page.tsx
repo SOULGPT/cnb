@@ -18,11 +18,11 @@ export default function MenuPage() {
         </header>
 
         {/* 
-          Category Tabs — FIXED POSITION
-          This ensures it stays frozen at the top without any jitter or overlap.
+          Category Tabs — STICKY POSITION (Restored)
+          We use a solid background and shadow to prevent item bleed-through.
         */}
         <div 
-          className="fixed z-40 bg-white shadow-md border-b border-gray-100 left-0 right-0"
+          className="sticky z-40 bg-white shadow-md border-b border-gray-100"
           style={{ 
             top: Capacitor.getPlatform() === 'ios' ? '116px' : '64px' 
           }}
@@ -32,11 +32,8 @@ export default function MenuPage() {
           </div>
         </div>
 
-        {/* Spacer to push content down below the fixed bar (approx 60px height) */}
-        <div className="h-[60px] w-full" />
-
-        {/* Menu items */}
-        <div className="max-w-7xl mx-auto px-4 py-8">
+        {/* Menu items — with top margin to prevent initial overlap */}
+        <div className="max-w-7xl mx-auto px-4 py-8 mt-4">
           <MenuItemsGrid />
         </div>
 

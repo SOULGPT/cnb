@@ -43,18 +43,32 @@ export function BannerBundleDialog({ banner, open, onOpenChange }: BannerBundleD
   const handleAddBundle = () => {
     if (bundleDetails.length === 0) return
 
-    const cartItems: CartItem[] = bundleDetails.map(item => ({
-      id: `${item.id}-${Date.now()}-${Math.random()}`,
-      menuItem: item,
+    const dealPrice = parseFloat(banner?.price || "0")
+    
+    // Create a single Bundle Item representing the whole deal
+    const bundleItem: CartItem = {
+      id: `bundle-${banner?.id}-${Date.now()}`,
+      menuItem: {
+        id: banner?.id || "bundle",
+        categoryId: "deals",
+        name: banner?.title || "Special Bundle",
+        description: bundleDetails.map(i => i.name).join(" + "),
+        priceEur: dealPrice,
+        imageUrl: banner?.imageUrl || "",
+        available: true,
+      },
       quantity: 1,
       customizations: [],
-      totalPrice: item.priceEur
-    }))
+      totalPrice: dealPrice,
+      isDeal: true,
+      dealId: banner?.id,
+      dealTitle: banner?.title
+    }
 
-    addItems(cartItems)
+    addItems([bundleItem])
     toast({
-      title: "Bundle Added!",
-      description: `${banner?.title} has been added to your cart.`,
+      title: "Combo Added!",
+      description: `${banner?.title} has been added to your cart for €${dealPrice.toFixed(2)}.`,
     })
     onOpenChange(false)
   }

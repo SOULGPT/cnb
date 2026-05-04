@@ -90,7 +90,7 @@ function BannerRenderer({ banner, onClick }: { banner: HomeBanner, onClick: () =
           <img 
             src={banner.imageUrl} 
             alt={banner.title}
-            className="absolute right-0 top-1/2 -translate-y-1/2 h-[120%] w-auto object-contain transition-transform group-hover:scale-110 drop-shadow-2xl"
+            className="absolute right-0 top-0 h-full w-[60%] object-cover transition-transform group-hover:scale-110 drop-shadow-2xl"
           />
         </div>
       )
@@ -117,7 +117,7 @@ function BannerRenderer({ banner, onClick }: { banner: HomeBanner, onClick: () =
              <img 
                 src={banner.imageUrl} 
                 alt={banner.title}
-                className="relative h-full w-full object-contain drop-shadow-2xl z-10 group-hover:rotate-12 transition-transform"
+                className="relative h-full w-full object-cover rounded-full drop-shadow-2xl z-10 group-hover:rotate-12 transition-transform"
               />
           </div>
         </div>
@@ -135,7 +135,7 @@ function BannerRenderer({ banner, onClick }: { banner: HomeBanner, onClick: () =
              <img 
                 src={banner.imageUrl} 
                 alt={banner.title}
-                className="relative h-40 w-40 object-contain z-10 drop-shadow-lg group-hover:scale-110 transition-transform"
+                className="relative h-32 w-32 rounded-full object-cover z-10 drop-shadow-lg group-hover:scale-110 transition-transform border-4 border-[#E78A00]"
               />
           </div>
           <div className="w-1/2 p-6 flex flex-col justify-center items-start text-white">

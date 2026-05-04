@@ -17,8 +17,16 @@ export function SmartUpsell() {
   const [offers, setOffers] = useState<CheckoutOffer[]>([])
 
   useEffect(() => {
-    const unsubscribe = subscribeToCheckoutOffers(setOffers)
-    return () => unsubscribe()
+    let unsubscribe: (() => void) | null = null
+    
+    const setup = async () => {
+      unsubscribe = await subscribeToCheckoutOffers(setOffers)
+    }
+    
+    setup()
+    return () => {
+      if (unsubscribe) unsubscribe()
+    }
   }, [])
 
   const recommendedItems = useMemo(() => {

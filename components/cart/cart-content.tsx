@@ -2,6 +2,7 @@
 
 import { useCart } from "@/contexts/cart-context"
 import { CartItemCard } from "./cart-item-card"
+import { SmartUpsell } from "./smart-upsell"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -144,6 +145,8 @@ export function CartContent() {
         {items.map((item) => (
           <CartItemCard key={item.id} item={item} />
         ))}
+
+        <SmartUpsell />
 
         <Button variant="outline" onClick={handleClearCart} disabled={isPending} className="w-full bg-transparent">
           {isPending ? "Clearing..." : "Clear Cart"}

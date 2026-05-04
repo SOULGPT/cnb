@@ -296,3 +296,12 @@ export interface HomeBanner {
   order: number
   isActive: boolean
 }
+
+export interface CheckoutOffer {
+  id: string
+  sourceCategoryId?: string // If category matches, show these items
+  suggestedItemIds: string[]
+  isGlobalFallback: boolean
+  isActive: boolean
+  title?: string // e.g. "Great with Burgers"
+}

@@ -16,6 +16,7 @@ import { QRCodeGenerator } from "./qr-code-generator"
 import { DealsPromotionsManager } from "./deals-promotions-manager"
 import { CategoryManager } from "./category-manager"
 import { HomeBannersManager } from "@/components/admin/home-banners-manager"
+import { CheckoutOffersManager } from "./checkout-offers-manager"
 import {
   Loader2,
   ShieldAlert,
@@ -39,6 +40,7 @@ import {
   Ticket,
   FolderOpen,
   Layout,
+  Sparkles,
 } from "lucide-react"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
@@ -63,6 +65,7 @@ const menuItems = [
   { id: "ingredients", label: "Ingredients", icon: Utensils },
   { id: "qr-codes", label: "QR Code Generator", icon: QrCode },
   { id: "deals", label: "Offers & Promotions", icon: Gift },
+  { id: "checkout-offers", label: "Checkout Offers", icon: Sparkles },
   { id: "coupons", label: "Coupon Codes", icon: Ticket },
   { id: "customers", label: "Customers", icon: Users },
   { id: "invoices", label: "Invoices", icon: FileText },
@@ -149,6 +152,8 @@ export function AdminDashboard() {
         return <QRCodeGenerator />
       case "deals":
         return <DealsPromotionsManager />
+      case "checkout-offers":
+        return <CheckoutOffersManager />
       case "coupons":
         return <CouponManager />
       case "customers":

@@ -2,6 +2,7 @@ import { FloatingCartButton } from "@/components/floating-cart-button"
 import { MenuCategoryTabs } from "@/components/menu/menu-category-tabs"
 import { MenuItemsGrid } from "@/components/menu/menu-items-grid"
 import { MenuProvider } from "@/contexts/menu-context"
+import { Capacitor } from "@capacitor/core"
 
 export default function MenuPage() {
   return (
@@ -18,11 +19,15 @@ export default function MenuPage() {
 
         {/*
           Category Tabs — sticky within the global window scroll.
-          We use a dynamic top value to account for the TopNav height.
+          We use a dynamic top value: 
+          - Desktop/Standard: 56px (TopNav height)
+          - iOS: 116px (TopNav + 60px Safe Area)
         */}
         <div 
           className="sticky z-40 bg-white shadow-sm border-b border-gray-100"
-          style={{ top: 'var(--header-height, 116px)' }}
+          style={{ 
+            top: Capacitor.getPlatform() === 'ios' ? '116px' : '56px' 
+          }}
         >
           <div className="max-w-7xl mx-auto">
             <MenuCategoryTabs />

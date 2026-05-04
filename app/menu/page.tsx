@@ -18,19 +18,19 @@ export default function MenuPage() {
 
         {/*
           Category Tabs — sticky within the global window scroll.
-          top must account for the fixed TopNav height to not hide behind it.
+          We use a dynamic top value to account for the TopNav height.
         */}
         <div 
-          className="sticky z-30 bg-white border-b border-gray-100"
-          style={{ top: '120px' }}
+          className="sticky z-40 bg-white shadow-sm border-b border-gray-100"
+          style={{ top: 'var(--header-height, 116px)' }}
         >
           <div className="max-w-7xl mx-auto">
             <MenuCategoryTabs />
           </div>
         </div>
 
-        {/* Menu items — no bottom padding here; global <main> handles safe-area clearance */}
-        <div className="max-w-7xl mx-auto px-4 py-4">
+        {/* Menu items — added margin-top to prevent hiding under the sticky category bar */}
+        <div className="max-w-7xl mx-auto px-4 py-8 mt-12">
           <MenuItemsGrid />
         </div>
 

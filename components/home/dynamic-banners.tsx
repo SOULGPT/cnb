@@ -5,10 +5,13 @@ import type { HomeBanner, BannerTemplateId } from "@/types"
 import { useRouter } from "next/navigation"
 import { ArrowRight, Tag } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
+import { useState } from "react"
+import { BannerBundleDialog } from "./banner-bundle-dialog"
 
 export function DynamicBanners() {
   const { banners, loading } = useHomeBanners()
   const router = useRouter()
+  const [selectedBundle, setSelectedBundle] = useState<HomeBanner | null>(null)
 
   if (loading) return (
     <div className="container px-4 py-8 mx-auto -mt-8 relative z-10 animate-pulse">
@@ -19,6 +22,12 @@ export function DynamicBanners() {
   )
 
   const handleAction = (banner: HomeBanner) => {
+    // If it has bundle items, always open the bundle view first
+    if (Array.isArray(banner.bundleItems) && banner.bundleItems.length > 0) {
+      setSelectedBundle(banner)
+      return
+    }
+
     switch (banner.actionType) {
       case "link":
         router.push(banner.actionValue)
@@ -40,6 +49,12 @@ export function DynamicBanners() {
       {banners.map((banner) => (
         <BannerRenderer key={banner.id} banner={banner} onClick={() => handleAction(banner)} />
       ))}
+
+      <BannerBundleDialog 
+        banner={selectedBundle}
+        open={!!selectedBundle}
+        onOpenChange={(open) => !open && setSelectedBundle(null)}
+      />
     </section>
   )
 }

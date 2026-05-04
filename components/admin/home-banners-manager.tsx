@@ -9,15 +9,20 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Plus, Trash2, Edit2, GripVertical, Save, X, Eye } from "lucide-react"
+import { Plus, Trash2, Edit2, GripVertical, Save, X, Eye, Upload, Search, Check } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { Badge } from "@/components/ui/badge"
+import { useMenuItems } from "@/hooks/use-menu-items"
+import { ScrollArea } from "@/components/ui/scroll-area"
 
 export function HomeBannersManager() {
   const [banners, setBanners] = useState<HomeBanner[]>([])
   const [editingBanner, setEditingBanner] = useState<Partial<HomeBanner> | null>(null)
   const [loading, setLoading] = useState(true)
+  const [uploading, setUploading] = useState(false)
+  const [searchTerm, setSearchTerm] = useState("")
   const { toast } = useToast()
+  const { items: allItems } = useMenuItems()
 
   useEffect(() => {
     const unsubscribe = subscribeToHomeBanners((newBanners) => {
@@ -26,6 +31,45 @@ export function HomeBannersManager() {
     })
     return () => unsubscribe()
   }, [])
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setUploading(true)
+    const formData = new FormData()
+    formData.append("file", file)
+    formData.append("folder", "banners")
+
+    try {
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      })
+
+      if (!res.ok) throw new Error("Upload failed")
+
+      const data = await res.json()
+      setEditingBanner(prev => ({ ...prev, imageUrl: data.url }))
+      toast({ title: "Success", description: "Image uploaded successfully" })
+    } catch (error) {
+      toast({ title: "Error", description: "Image upload failed", variant: "destructive" })
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  const toggleBundleItem = (itemId: string) => {
+    const currentBundle = editingBanner?.bundleItems || []
+    const isAlreadyIn = currentBundle.includes(itemId)
+    
+    setEditingBanner(prev => ({
+      ...prev,
+      bundleItems: isAlreadyIn 
+        ? currentBundle.filter(id => id !== itemId)
+        : [...currentBundle, itemId]
+    }))
+  }
 
   const handleSave = async () => {
     if (!editingBanner?.title || !editingBanner?.imageUrl) {
@@ -110,12 +154,36 @@ export function HomeBannersManager() {
               </div>
 
               <div className="space-y-2">
-                <Label>Image URL</Label>
-                <Input 
-                  value={editingBanner.imageUrl || ""} 
-                  onChange={(e) => setEditingBanner({ ...editingBanner, imageUrl: e.target.value })}
-                  placeholder="Full bleed image path"
-                />
+                <Label>Image</Label>
+                <div className="flex gap-2">
+                  <Input 
+                    value={editingBanner.imageUrl || ""} 
+                    onChange={(e) => setEditingBanner({ ...editingBanner, imageUrl: e.target.value })}
+                    placeholder="Image URL or upload"
+                  />
+                  <div className="relative">
+                    <Input 
+                      type="file" 
+                      id="banner-image"
+                      className="hidden" 
+                      onChange={handleImageUpload}
+                      accept="image/*"
+                    />
+                    <Button 
+                      variant="outline" 
+                      size="icon" 
+                      disabled={uploading}
+                      onClick={() => document.getElementById("banner-image")?.click()}
+                    >
+                      {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+                    </Button>
+                  </div>
+                </div>
+                {editingBanner.imageUrl && (
+                  <div className="mt-2 w-full h-32 rounded-lg border overflow-hidden bg-muted">
+                    <img src={editingBanner.imageUrl} alt="Preview" className="w-full h-full object-cover" />
+                  </div>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -225,6 +293,46 @@ export function HomeBannersManager() {
                     onChange={(e) => setEditingBanner({ ...editingBanner, endTime: e.target.value })}
                   />
                 </div>
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <Label>Bundle Items (Optional Deal Items)</Label>
+                  <Badge variant="secondary">{editingBanner.bundleItems?.length || 0} selected</Badge>
+                </div>
+                <div className="relative">
+                  <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input 
+                    placeholder="Search items to add to bundle..." 
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-8"
+                  />
+                </div>
+                <ScrollArea className="h-48 rounded-md border p-2">
+                  <div className="space-y-1">
+                    {allItems
+                      .filter(item => item.name.toLowerCase().includes(searchTerm.toLowerCase()))
+                      .map(item => {
+                        const isSelected = editingBanner.bundleItems?.includes(item.id)
+                        return (
+                          <div 
+                            key={item.id}
+                            className={`flex items-center justify-between p-2 rounded-md cursor-pointer text-sm transition-colors ${
+                              isSelected ? "bg-primary/10 border-primary" : "hover:bg-muted"
+                            }`}
+                            onClick={() => toggleBundleItem(item.id)}
+                          >
+                            <div className="flex items-center gap-2">
+                              {item.imageUrl && <img src={item.imageUrl} className="w-6 h-6 rounded-sm object-cover" alt="" />}
+                              <span>{item.name}</span>
+                            </div>
+                            {isSelected && <Check className="w-4 h-4 text-primary" />}
+                          </div>
+                        )
+                      })}
+                  </div>
+                </ScrollArea>
               </div>
 
               <div className="flex items-center gap-4 pt-4">

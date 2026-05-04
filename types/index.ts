@@ -290,6 +290,7 @@ export interface HomeBanner {
   }
   actionType: "link" | "category" | "item" | "deal"
   actionValue: string // URL, categoryId, itemId, or dealId
+  bundleItems?: string[] // Optional array of MenuItem IDs for combo deals
   startTime?: string // "HH:mm"
   endTime?: string // "HH:mm"
   order: number

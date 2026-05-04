@@ -12,6 +12,7 @@ interface CartContextType {
     customizations?: SelectedCustomization[] | any,
     finalPrice?: number,
   ) => void
+  addItems: (cartItems: CartItem[]) => void
   removeItem: (itemId: string) => void
   updateQuantity: (itemId: string, quantity: number) => void
   clearCart: () => void
@@ -132,6 +133,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     [calculateItemPrice],
   )
 
+  const addItems = useCallback((newCartItems: CartItem[]) => {
+    setItems((prev) => [...prev, ...newCartItems])
+  }, [])
+
   const removeItem = useCallback((itemId: string) => {
     setItems((prev) => prev.filter((item) => item.id !== itemId))
   }, [])
@@ -168,6 +173,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     () => ({
       items,
       addItem,
+      addItems,
       removeItem,
       updateQuantity,
       clearCart,
@@ -175,7 +181,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       totalPrice,
       isReady,
     }),
-    [items, addItem, removeItem, updateQuantity, clearCart, totalItems, totalPrice, isReady],
+    [items, addItem, addItems, removeItem, updateQuantity, clearCart, totalItems, totalPrice, isReady],
   )
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>

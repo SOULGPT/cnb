@@ -17,16 +17,14 @@ export default function MenuPage() {
           </div>
         </header>
 
-        {/*
-          Category Tabs — sticky within the global window scroll.
-          We use a dynamic top value: 
-          - Desktop/Standard: 56px (TopNav height)
-          - iOS: 116px (TopNav + 60px Safe Area)
+        {/* 
+          Category Tabs — FIXED POSITION
+          This ensures it stays frozen at the top without any jitter or overlap.
         */}
         <div 
-          className="sticky z-40 bg-white shadow-sm border-b border-gray-100"
+          className="fixed z-40 bg-white shadow-md border-b border-gray-100 left-0 right-0"
           style={{ 
-            top: Capacitor.getPlatform() === 'ios' ? '116px' : '56px' 
+            top: Capacitor.getPlatform() === 'ios' ? '116px' : '64px' 
           }}
         >
           <div className="max-w-7xl mx-auto">
@@ -34,8 +32,11 @@ export default function MenuPage() {
           </div>
         </div>
 
-        {/* Menu items — added margin-top to prevent hiding under the sticky category bar */}
-        <div className="max-w-7xl mx-auto px-4 py-8 mt-12">
+        {/* Spacer to push content down below the fixed bar (approx 60px height) */}
+        <div className="h-[60px] w-full" />
+
+        {/* Menu items */}
+        <div className="max-w-7xl mx-auto px-4 py-8">
           <MenuItemsGrid />
         </div>
 

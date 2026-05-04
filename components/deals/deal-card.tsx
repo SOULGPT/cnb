@@ -80,7 +80,7 @@ export function DealCard({ deal }: DealCardProps) {
 
           <div className="flex items-center gap-2 text-xs text-muted-foreground mb-4">
             <Calendar className="w-4 h-4" />
-            <span>Valid until {deal.validUntil && format(deal.validUntil)}</span>
+            <span>Valid until {deal.validUntil && format(deal.validUntil, "PP")}</span>
           </div>
 
           <Button className="w-full bg-[#E78A00] hover:bg-[#C67500] text-white" onClick={() => setDialogOpen(true)}>

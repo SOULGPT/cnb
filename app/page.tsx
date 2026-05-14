@@ -30,7 +30,7 @@ export default function HomePage() {
   }, [searchParams])
 
   return (
-    <div className="bg-background pb-20">
+    <div className="bg-background pb-6 md:pb-12">
       <HeroSection />
       <DynamicBanners />
       <PromoBanner />

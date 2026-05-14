@@ -19,13 +19,14 @@ const manrope = Manrope({
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  maximumScale: 5,
-  userScalable: true,
+  maximumScale: 1,
+  userScalable: false,
   viewportFit: 'cover',
   themeColor: '#E07B39',
 }
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "https://curryandburger.vercel.app"),
   title: "Curry&Burger - Taste the Fusion!",
   description: "Delicious fusion of curry and burger. Order now for pickup or delivery!",
   manifest: "/manifest.json",
@@ -88,7 +89,7 @@ export default function RootLayout({
          */}
         <meta
           name="viewport"
-          content="initial-scale=1, width=device-width, shrink-to-fit=no, viewport-fit=cover"
+          content="initial-scale=1, width=device-width, shrink-to-fit=no, viewport-fit=cover, maximum-scale=1, user-scalable=no"
         />
       </head>
       <body className="font-sans bg-white text-foreground antialiased relative min-h-screen">
@@ -111,10 +112,9 @@ export default function RootLayout({
                 padding-bottom = at least 90px to clear fixed footer
               */}
               <main
-                className="w-full relative flex-1"
+                className="w-full relative flex-1 pb-[90px] md:pb-6"
                 style={{ 
                   paddingTop: "120px",
-                  paddingBottom: "90px" 
                 }}
               >
                 {children}

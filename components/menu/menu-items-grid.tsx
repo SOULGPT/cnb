@@ -27,14 +27,7 @@ export function MenuItemsGrid() {
 
   const handleQuickAdd = (item: MenuItem) => {
     setAddingItem(item.id)
-    addItem({
-      id: item.id,
-      name: item.name,
-      price: item.priceEur,
-      quantity: 1,
-      imageUrl: item.imageUrl,
-      customizations: [],
-    })
+    addItem(item, 1, [])
     setTimeout(() => setAddingItem(null), 500)
   }
 
@@ -63,25 +56,25 @@ export function MenuItemsGrid() {
 
   return (
     <>
-      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-3 grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
         {items.map((item) => (
           <div
             key={item.id}
-            className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-md transition-shadow"
+            className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-md transition-all active:scale-[0.98] active:opacity-90"
           >
             {/* Image */}
             <Link href={`/menu/${item.id}`} className="block">
-              <div className="aspect-[16/10] relative bg-gray-100">
+              <div className="aspect-square relative bg-gray-100">
                 <img
-                  src={item.imageUrl || "/placeholder.svg?height=200&width=320"}
+                  src={item.imageUrl || "/placeholder.svg?height=200&width=200"}
                   alt={item.name}
                   className="w-full h-full object-cover"
                   loading="lazy"
                 />
                 {!item.available && (
                   <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                    <span className="bg-red-600 text-white text-sm font-bold px-3 py-1 rounded-full">
-                      Unavailable
+                    <span className="bg-red-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
+                      Sold Out
                     </span>
                   </div>
                 )}
@@ -89,53 +82,30 @@ export function MenuItemsGrid() {
             </Link>
 
             {/* Content */}
-            <div className="p-4">
+            <div className="p-2.5 sm:p-4">
               <Link href={`/menu/${item.id}`}>
-                <h3 className="font-bold text-gray-900 text-lg leading-tight hover:text-[#E78A00] transition-colors">
+                <h3 className="font-bold text-gray-900 text-sm sm:text-lg leading-tight hover:text-[#E78A00] transition-colors truncate">
                   {item.name}
                 </h3>
               </Link>
               
-              {item.description && (
-                <p className="text-gray-500 text-sm mt-1 line-clamp-2">
-                  {item.description}
-                </p>
-              )}
-
-              {/* Price and Actions */}
-              <div className="flex items-center justify-between mt-4">
-                <span className="text-xl font-bold text-[#E78A00]">
+              <div className="mt-1 flex items-center justify-between">
+                <span className="text-sm sm:text-lg font-black text-[#E78A00]">
                   €{(Number(item.priceEur) || 0).toFixed(2)}
                 </span>
-
-                <div className="flex gap-2">
-                  {item.customizable && (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => setCustomizingItem(item)}
-                      disabled={!item.available}
-                      className="h-9 px-3 border-[#E78A00] text-[#E78A00] hover:bg-[#E78A00]/10"
-                    >
-                      <Settings className="w-4 h-4" />
-                    </Button>
+                
+                <Button
+                  size="icon"
+                  onClick={() => handleQuickAdd(item)}
+                  disabled={!item.available || addingItem === item.id}
+                  className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-[#E78A00] hover:bg-[#C67500] text-white shrink-0 shadow-sm active:scale-90 transition-transform"
+                >
+                  {addingItem === item.id ? (
+                    <span className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <Plus className="w-4 h-4" />
                   )}
-                  <Button
-                    size="sm"
-                    onClick={() => handleQuickAdd(item)}
-                    disabled={!item.available || addingItem === item.id}
-                    className="h-9 px-4 bg-[#E78A00] hover:bg-[#C67500] text-white"
-                  >
-                    {addingItem === item.id ? (
-                      <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    ) : (
-                      <>
-                        <Plus className="w-4 h-4 mr-1" />
-                        Add
-                      </>
-                    )}
-                  </Button>
-                </div>
+                </Button>
               </div>
             </div>
           </div>

@@ -142,7 +142,7 @@ export const CartItemCard = memo(function CartItemCard({ item }: CartItemCardPro
               )}
 
               {item.removedItems && item.removedItems.length > 0 && (
-                <div className="mt-1 text-[10px] text-red-500 font-bold flex items-center gap-1">
+                <div className="mt-1 text-[10px] text-red-500 font-bold flex flex-wrap items-center gap-1">
                   <span className="bg-red-100 px-1 rounded uppercase tracking-tighter">No</span>
                   {item.removedItems.join(", ")}
                 </div>

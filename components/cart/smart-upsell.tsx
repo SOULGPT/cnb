@@ -10,7 +10,6 @@ import { subscribeToCheckoutOffers } from "@/lib/firebase-offers"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Plus, Sparkles, ChevronRight, ChevronLeft } from "lucide-react"
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
 
 export function SmartUpsell() {
   const { items: cartItems, addItem } = useCart()
@@ -90,14 +89,21 @@ export function SmartUpsell() {
         </h3>
       </div>
 
-      <ScrollArea className="w-full whitespace-nowrap rounded-xl">
-        <div className="flex w-max gap-4 p-1">
+      <div className="relative group/scroll">
+        <div className="overflow-x-auto scrollbar-hide snap-x snap-mandatory flex gap-3 pb-4 px-1 -mx-1 scroll-smooth">
           {recommendedItems.map((item) => (
-            <UpsellCard key={item.id} item={item} onAdd={() => addItem(item)} />
+            <div key={item.id} className="snap-start shrink-0">
+              <UpsellCard item={item} onAdd={() => addItem(item)} />
+            </div>
           ))}
+          {/* Spacer for the end to ensure padding is respected */}
+          <div className="shrink-0 w-4" />
         </div>
-        <ScrollBar orientation="horizontal" className="hidden" />
-      </ScrollArea>
+        
+        {/* Gradient edge indicators */}
+        <div className="absolute top-0 right-0 bottom-4 w-12 bg-gradient-to-l from-white to-transparent pointer-events-none opacity-0 group-hover/scroll:opacity-100 transition-opacity" />
+        <div className="absolute top-0 left-0 bottom-4 w-12 bg-gradient-to-r from-white to-transparent pointer-events-none opacity-0 group-hover/scroll:opacity-100 transition-opacity" />
+      </div>
     </div>
   )
 }
@@ -112,7 +118,7 @@ function UpsellCard({ item, onAdd }: { item: MenuItem; onAdd: () => void }) {
   }
 
   return (
-    <Card className="w-48 overflow-hidden group border-none shadow-sm hover:shadow-md transition-all duration-300 bg-white">
+    <Card className="w-[160px] md:w-[200px] overflow-hidden group border-none shadow-sm hover:shadow-md transition-all duration-300 bg-white">
       <div className="aspect-[4/3] relative overflow-hidden bg-gray-100">
         <img 
           src={item.imageUrl || "/placeholder.svg"} 

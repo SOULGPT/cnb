@@ -19,14 +19,7 @@ export function FeaturedItems() {
 
   const handleQuickAdd = (item: any) => {
     setAddingItem(item.id)
-    addItem({
-      id: item.id,
-      name: item.name,
-      price: item.priceEur,
-      quantity: 1,
-      imageUrl: item.imageUrl,
-      customizations: [],
-    })
+    addItem(item, 1, [])
     setTimeout(() => setAddingItem(null), 600)
   }
 

@@ -1,4 +1,3 @@
-import { BottomNav } from "@/components/bottom-nav"
 import { CheckoutForm } from "@/components/checkout/checkout-form"
 
 export default function CheckoutPage() {

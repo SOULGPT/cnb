@@ -13,6 +13,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { MapPin, CreditCard, Wallet, ShoppingBag, Store, UtensilsCrossed } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { incrementCouponUsage } from "@/lib/firebase-coupons"
+import { incrementItemOrderCount } from "@/lib/firebase-menu"
 import { StripeCheckoutModal } from "@/components/checkout/stripe-checkout-modal"
 
 export function CheckoutForm() {
@@ -366,17 +367,22 @@ export function CheckoutForm() {
               </h2>
               <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod}>
                 {/* Pay Online - Coming Soon */}
-                <div className="flex items-center space-x-3 p-4 border rounded-lg bg-gray-50 opacity-60 cursor-not-allowed">
-                  <RadioGroupItem value="pay_online" id="pay_online" disabled />
-                  <Label htmlFor="pay_online" className="flex-1 cursor-not-allowed">
+                <div 
+                  className={cn(
+                    "flex items-center space-x-3 p-4 border rounded-lg cursor-pointer hover:bg-muted/50 transition-all",
+                    paymentMethod === "pay_online" && "border-[#E78A00] bg-orange-50"
+                  )}
+                  onClick={() => setPaymentMethod("pay_online")}
+                >
+                  <RadioGroupItem value="pay_online" id="pay_online" />
+                  <Label htmlFor="pay_online" className="flex-1 cursor-pointer">
                     <div className="flex items-center gap-3">
-                      <CreditCard className="w-5 h-5 text-gray-400" />
+                      <CreditCard className="w-5 h-5 text-[#E78A00]" />
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
-                          <p className="font-semibold text-gray-500">Pay Online</p>
-                          <span className="px-2 py-0.5 bg-[#E78A00] text-white text-xs font-bold rounded-full">Coming Soon</span>
+                          <p className="font-semibold">Pay Online</p>
                         </div>
-                        <p className="text-sm text-gray-400">Credit/Debit Card</p>
+                        <p className="text-sm text-muted-foreground">Credit/Debit Card via Stripe</p>
                       </div>
                     </div>
                   </Label>

@@ -15,6 +15,7 @@ import { useToast } from "@/hooks/use-toast"
 import { incrementCouponUsage } from "@/lib/firebase-coupons"
 import { incrementItemOrderCount } from "@/lib/firebase-menu"
 import { StripeCheckoutModal } from "@/components/checkout/stripe-checkout-modal"
+import { cn } from "@/lib/utils"
 
 export function CheckoutForm() {
   const { user, continueAsGuest, isGuest } = useAuth()

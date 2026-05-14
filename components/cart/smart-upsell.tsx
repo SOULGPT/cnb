@@ -72,7 +72,7 @@ export function SmartUpsell() {
       .filter((m): m is MenuItem => !!m && m.available)
       .slice(0, 10)
 
-    console.log(`[SmartUpsell] Matching with:`, { cartCategories, cartCategoryNames, found: finalItems.length })
+
     return finalItems
   }, [cartItems, allMenuItems, allCategories, offers, itemsLoading])
 

@@ -24,7 +24,7 @@ export function useMenuItems() {
     })
 
     const timeout = setTimeout(() => {
-      if (mounted && loading) {
+      if (mounted && updateCountRef.current === 0) {
         console.log("[v0] useMenuItems: Timeout - setting loading false")
         setLoading(false)
       }

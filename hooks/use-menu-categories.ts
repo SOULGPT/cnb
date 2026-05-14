@@ -29,7 +29,7 @@ export function useMenuCategories() {
     })
 
     const timeout = setTimeout(() => {
-      if (mounted && loading) {
+      if (mounted && updateCountRef.current === 0) {
         console.log("[v0] useMenuCategories: Timeout - setting loading false")
         setLoading(false)
       }

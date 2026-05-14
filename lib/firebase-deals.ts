@@ -1,5 +1,6 @@
-import { getFirebaseDb, isFirebaseConfigured, waitForFirebase } from "./firebase"
+import { getFirebaseDbSync, isFirebaseConfigured, waitForFirebase } from "./firebase"
 import type { Deal, Promotion } from "@/types"
+import { collection, query, orderBy, onSnapshot, type Firestore } from "firebase/firestore"
 
 // Types for Banner
 export interface Banner {
@@ -72,50 +73,45 @@ export function subscribeToDeals(callback: (deals: Deal[]) => void) {
     }
   }
 
-  let unsubscribe: (() => void) | null = null
-  ;(async () => {
-    try {
-      const ready = await waitForFirebase()
-      if (!ready) {
-        return
+  let unsubscribe: (() => void) | undefined
+
+  function setupDealsListener(dbInstance: Firestore) {
+    const q = query(collection(dbInstance, "deals"), orderBy("priority", "desc"))
+    unsubscribe = onSnapshot(
+      q,
+      (snapshot) => {
+        const deals = snapshot.docs.map((doc) => {
+          const data = doc.data()
+          return {
+            id: doc.id,
+            ...data,
+            validUntil: data.validUntil?.toDate?.() || data.validUntil,
+            validFrom: data.validFrom?.toDate?.() || data.validFrom,
+          } as Deal
+        })
+
+        const finalDeals = deals.length > 0 ? deals : mockDeals
+        saveToStorage(DEALS_STORAGE_KEY, finalDeals)
+        notifyDealsListeners(finalDeals)
+      },
+      (error) => {
+        console.error("[v0] Deals snapshot error:", error)
+        notifyDealsListeners(mockDeals)
       }
+    )
+  }
 
-      const db = await getFirebaseDb()
-      if (!db) {
-        return
-      }
-
-      const { collection, query, orderBy, onSnapshot } = await import("firebase/firestore")
-      // Fetch ALL deals (not just active) so admin can see inactive ones too
-      const q = query(collection(db, "deals"), orderBy("priority", "desc"))
-
-      unsubscribe = onSnapshot(
-        q,
-        (snapshot) => {
-          const deals = snapshot.docs.map((doc) => {
-            const data = doc.data()
-            return {
-              id: doc.id,
-              ...data,
-              validUntil: data.validUntil?.toDate?.() || data.validUntil,
-              validFrom: data.validFrom?.toDate?.() || data.validFrom,
-            } as Deal
-          })
-
-          const finalDeals = deals.length > 0 ? deals : mockDeals
-          saveToStorage(DEALS_STORAGE_KEY, finalDeals)
-          notifyDealsListeners(finalDeals)
-        },
-        (error) => {
-          console.error("[v0] Deals snapshot error:", error)
-          notifyDealsListeners(mockDeals)
-        },
-      )
-    } catch (error) {
-      console.error("[v0] Deals setup error:", error)
-      notifyDealsListeners(mockDeals)
-    }
-  })()
+  const db = getFirebaseDbSync()
+  if (!db) {
+    waitForFirebase().then(ready => {
+        if (ready) {
+            const asyncDb = getFirebaseDbSync()
+            if (asyncDb) setupDealsListener(asyncDb)
+        }
+    })
+  } else {
+    setupDealsListener(db)
+  }
 
   return () => {
     dealsListeners.delete(callback)
@@ -178,50 +174,45 @@ export function subscribeToPromotions(callback: (promotions: Promotion[]) => voi
     }
   }
 
-  let unsubscribe: (() => void) | null = null
-  ;(async () => {
-    try {
-      const ready = await waitForFirebase()
-      if (!ready) {
-        return
+  let unsubscribe: (() => void) | undefined
+
+  function setupPromotionsListener(dbInstance: Firestore) {
+    const q = query(collection(dbInstance, "promotions"), orderBy("priority", "desc"))
+    unsubscribe = onSnapshot(
+      q,
+      (snapshot) => {
+        const promotions = snapshot.docs.map((doc) => {
+          const data = doc.data()
+          return {
+            id: doc.id,
+            ...data,
+            validUntil: data.validUntil?.toDate?.() || data.validUntil,
+            validFrom: data.validFrom?.toDate?.() || data.validFrom,
+          } as Promotion
+        })
+
+        const finalPromotions = promotions.length > 0 ? promotions : mockPromotions
+        saveToStorage(PROMOTIONS_STORAGE_KEY, finalPromotions)
+        notifyPromotionsListeners(finalPromotions)
+      },
+      (error) => {
+        console.error("[v0] Promotions snapshot error:", error)
+        notifyPromotionsListeners(mockPromotions)
       }
+    )
+  }
 
-      const db = await getFirebaseDb()
-      if (!db) {
-        return
-      }
-
-      const { collection, query, orderBy, onSnapshot } = await import("firebase/firestore")
-      // Fetch ALL promotions so admin can see inactive ones too
-      const q = query(collection(db, "promotions"), orderBy("priority", "desc"))
-
-      unsubscribe = onSnapshot(
-        q,
-        (snapshot) => {
-          const promotions = snapshot.docs.map((doc) => {
-            const data = doc.data()
-            return {
-              id: doc.id,
-              ...data,
-              validUntil: data.validUntil?.toDate?.() || data.validUntil,
-              validFrom: data.validFrom?.toDate?.() || data.validFrom,
-            } as Promotion
-          })
-
-          const finalPromotions = promotions.length > 0 ? promotions : mockPromotions
-          saveToStorage(PROMOTIONS_STORAGE_KEY, finalPromotions)
-          notifyPromotionsListeners(finalPromotions)
-        },
-        (error) => {
-          console.error("[v0] Promotions snapshot error:", error)
-          notifyPromotionsListeners(mockPromotions)
-        },
-      )
-    } catch (error) {
-      console.error("[v0] Promotions setup error:", error)
-      notifyPromotionsListeners(mockPromotions)
-    }
-  })()
+  const db = getFirebaseDbSync()
+  if (!db) {
+    waitForFirebase().then(ready => {
+        if (ready) {
+            const asyncDb = getFirebaseDbSync()
+            if (asyncDb) setupPromotionsListener(asyncDb)
+        }
+    })
+  } else {
+    setupPromotionsListener(db)
+  }
 
   return () => {
     promotionsListeners.delete(callback)
@@ -284,50 +275,51 @@ export function subscribeToBanners(callback: (banners: Banner[]) => void) {
     }
   }
 
-  let unsubscribe: (() => void) | null = null
-  ;(async () => {
-    try {
-      const ready = await waitForFirebase()
-      if (!ready) {
-        return
+  let unsubscribe: (() => void) | undefined
+
+  function setupBannersListener(dbInstance: Firestore) {
+    const q = query(collection(dbInstance, "banners"), orderBy("priority", "desc"))
+    unsubscribe = onSnapshot(
+      q,
+      (snapshot) => {
+        const banners = snapshot.docs.map((doc) => {
+          const data = doc.data()
+          return {
+            id: doc.id,
+            title: data.title || "",
+            subtitle: data.subtitle,
+            imageUrl: data.imageUrl || "/placeholder.svg",
+            linkUrl: data.linkUrl,
+            linkText: data.linkText,
+            active: data.active ?? true,
+            priority: data.priority ?? 0,
+            validUntil: data.validUntil?.toDate?.() || data.validUntil,
+            validFrom: data.validFrom?.toDate?.() || data.validFrom,
+          } as Banner
+        })
+
+        const finalBanners = banners.length > 0 ? banners : mockBanners
+        saveToStorage(BANNERS_STORAGE_KEY, finalBanners)
+        notifyBannersListeners(finalBanners)
+      },
+      (error) => {
+        console.error("[v0] Banners snapshot error:", error)
+        notifyBannersListeners(mockBanners)
       }
+    )
+  }
 
-      const db = await getFirebaseDb()
-      if (!db) {
-        return
-      }
-
-      const { collection, query, orderBy, onSnapshot } = await import("firebase/firestore")
-      // Fetch ALL banners so admin can see inactive ones too
-      const q = query(collection(db, "banners"), orderBy("priority", "desc"))
-
-      unsubscribe = onSnapshot(
-        q,
-        (snapshot) => {
-          const banners = snapshot.docs.map((doc) => {
-            const data = doc.data()
-            return {
-              id: doc.id,
-              ...data,
-              validUntil: data.validUntil?.toDate?.() || data.validUntil,
-              validFrom: data.validFrom?.toDate?.() || data.validFrom,
-            } as Banner
-          })
-
-          const finalBanners = banners.length > 0 ? banners : mockBanners
-          saveToStorage(BANNERS_STORAGE_KEY, finalBanners)
-          notifyBannersListeners(finalBanners)
-        },
-        (error) => {
-          console.error("[v0] Banners snapshot error:", error)
-          notifyBannersListeners(mockBanners)
-        },
-      )
-    } catch (error) {
-      console.error("[v0] Banners setup error:", error)
-      notifyBannersListeners(mockBanners)
-    }
-  })()
+  const db = getFirebaseDbSync()
+  if (!db) {
+    waitForFirebase().then(ready => {
+        if (ready) {
+            const asyncDb = getFirebaseDbSync()
+            if (asyncDb) setupBannersListener(asyncDb)
+        }
+    })
+  } else {
+    setupBannersListener(db)
+  }
 
   return () => {
     bannersListeners.delete(callback)
@@ -412,6 +404,9 @@ const mockDeals: Deal[] = [
             imageUrl: "/tikka-chicken-burger--professional-food-photograph.jpg",
           },
         ],
+        quantity: 4,
+        includedInPrice: true,
+        isCombo: true
       },
       {
         id: "fries",
@@ -423,6 +418,9 @@ const mockDeals: Deal[] = [
           { id: "regular", name: "Regular Fries", priceEur: 0, imageUrl: "/placeholder.svg" },
           { id: "wedges", name: "Potato Wedges", priceEur: 1, imageUrl: "/placeholder.svg" },
         ],
+        quantity: 1,
+        includedInPrice: true,
+        isCombo: false
       },
       {
         id: "drinks",
@@ -435,6 +433,9 @@ const mockDeals: Deal[] = [
           { id: "sprite", name: "Sprite", priceEur: 0, imageUrl: "/placeholder.svg" },
           { id: "fanta", name: "Fanta", priceEur: 0, imageUrl: "/placeholder.svg" },
         ],
+        quantity: 4,
+        includedInPrice: true,
+        isCombo: true
       },
     ],
   },

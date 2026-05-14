@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { getFirebaseDb } from "@/lib/firebase"
+import { getFirebaseDbSync } from "@/lib/firebase"
 import type { Branch } from "@/types"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -15,7 +15,7 @@ export function BranchLocator() {
 
   useEffect(() => {
     const fetchBranches = async () => {
-      const db = getFirebaseDb()
+      const db = getFirebaseDbSync()
 
       if (!db) {
         setBranches(mockBranches)
@@ -104,7 +104,11 @@ export function BranchLocator() {
                 <div>
                   <p className="font-medium">Open Today</p>
                   <p className="text-muted-foreground">
-                    {branch.openHours?.monday?.open || "10:00"} - {branch.openHours?.monday?.close || "23:00"}
+                    {typeof branch.openHours?.monday === "string"
+                      ? branch.openHours.monday
+                      : branch.openHours?.monday?.open
+                        ? `${branch.openHours.monday.open} - ${branch.openHours.monday.close}`
+                        : "10:00 - 23:00"}
                   </p>
                 </div>
               </div>

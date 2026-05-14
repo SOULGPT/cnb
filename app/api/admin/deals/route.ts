@@ -1,10 +1,11 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { adminDb } from "@/lib/firebase-admin"
+import { getAdminDb } from "@/lib/firebase-admin"
 import { FieldValue } from "firebase-admin/firestore"
 
 // GET - Fetch all deals
 export async function GET() {
   try {
+    const adminDb = getAdminDb()
     const snapshot = await adminDb.collection("deals").orderBy("priority", "desc").get()
 
     const deals = snapshot.docs.map((doc) => {
@@ -48,6 +49,7 @@ export async function POST(request: NextRequest) {
       updatedAt: FieldValue.serverTimestamp(),
     }
 
+    const adminDb = getAdminDb()
     const docRef = await adminDb.collection("deals").add(dealData)
 
     return NextResponse.json({
@@ -86,6 +88,7 @@ export async function PUT(request: NextRequest) {
       updatedAt: FieldValue.serverTimestamp(),
     }
 
+    const adminDb = getAdminDb()
     await adminDb.collection("deals").doc(body.id).update(dealData)
 
     return NextResponse.json({
@@ -109,6 +112,7 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: "Deal ID is required" }, { status: 400 })
     }
 
+    const adminDb = getAdminDb()
     await adminDb.collection("deals").doc(id).delete()
 
     return NextResponse.json({

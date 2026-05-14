@@ -79,53 +79,40 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       finalPrice?: number,
     ) => {
       try {
+        // Check if it's already a CartItem (has menuItem and totalPrice)
         if ("menuItem" in menuItemOrCartItem && "totalPrice" in menuItemOrCartItem) {
-          // It's already a CartItem, add it directly
           setItems((prev) => [...prev, menuItemOrCartItem as CartItem])
           return
         }
 
-        if (
-          "id" in menuItemOrCartItem &&
-          "name" in menuItemOrCartItem &&
-          "price" in menuItemOrCartItem &&
-          !("priceEur" in menuItemOrCartItem)
-        ) {
-          const simpleItem: CartItem = {
-            id: `${menuItemOrCartItem.id}-${Date.now()}`,
-            menuItem: {
-              id: menuItemOrCartItem.id,
-              categoryId: (menuItemOrCartItem as any).categoryId || "",
-              name: menuItemOrCartItem.name,
-              priceEur: (menuItemOrCartItem as any).price,
-              imageUrl: (menuItemOrCartItem as any).imageUrl || "",
-              available: true,
-            },
-            quantity: (menuItemOrCartItem as any).quantity || 1,
-            customizations: Array.isArray((menuItemOrCartItem as any).customizations)
-              ? (menuItemOrCartItem as any).customizations
-              : [],
-            totalPrice: (menuItemOrCartItem as any).price * ((menuItemOrCartItem as any).quantity || 1),
-          }
-          setItems((prev) => [...prev, simpleItem])
-        } else {
-          const menuItem = menuItemOrCartItem as MenuItem
-          const safeCustomizations = Array.isArray(customizations) ? customizations : []
-          const totalPrice =
-            finalPrice !== undefined ? finalPrice : calculateItemPrice(menuItem, quantity, safeCustomizations)
-
-          const newItem: CartItem = {
-            id: `${menuItem.id}-${Date.now()}`,
-            menuItem: {
-              ...menuItem,
-              imageUrl: menuItem.imageUrl || "",
-            },
-            quantity,
-            customizations: safeCustomizations,
-            totalPrice,
-          }
-          setItems((prev) => [...prev, newItem])
+        // Check if it's a raw MenuItem or a simplified object
+        const item = menuItemOrCartItem as any
+        
+        // Ensure we have a valid MenuItem structure
+        const menuItem: MenuItem = {
+            id: item.id || "unknown",
+            categoryId: item.categoryId || "uncategorized",
+            name: item.name || "Unknown Item",
+            description: item.description || "",
+            priceEur: Number(item.priceEur || item.price || 0),
+            imageUrl: item.imageUrl || "/placeholder.svg",
+            available: item.available ?? true,
+            published: item.published ?? true,
+            customizable: item.customizable ?? false,
         }
+
+        const safeCustomizations = Array.isArray(customizations) ? customizations : []
+        const totalPrice =
+          finalPrice !== undefined ? finalPrice : calculateItemPrice(menuItem, quantity, safeCustomizations)
+
+        const newItem: CartItem = {
+          id: `${menuItem.id}-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
+          menuItem,
+          quantity,
+          customizations: safeCustomizations,
+          totalPrice,
+        }
+        setItems((prev) => [...prev, newItem])
       } catch (error) {
         console.error("Cart error:", error)
       }

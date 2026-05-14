@@ -1,10 +1,11 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { adminDb } from "@/lib/firebase-admin"
+import { getAdminDb } from "@/lib/firebase-admin"
 import { FieldValue } from "firebase-admin/firestore"
 
 // GET - Fetch all promotions
 export async function GET() {
   try {
+    const adminDb = getAdminDb()
     const snapshot = await adminDb.collection("promotions").orderBy("priority", "desc").get()
 
     const promotions = snapshot.docs.map((doc) => {
@@ -45,6 +46,7 @@ export async function POST(request: NextRequest) {
       updatedAt: FieldValue.serverTimestamp(),
     }
 
+    const adminDb = getAdminDb()
     const docRef = await adminDb.collection("promotions").add(promoData)
 
     return NextResponse.json({
@@ -80,6 +82,7 @@ export async function PUT(request: NextRequest) {
       updatedAt: FieldValue.serverTimestamp(),
     }
 
+    const adminDb = getAdminDb()
     await adminDb.collection("promotions").doc(body.id).update(promoData)
 
     return NextResponse.json({
@@ -103,6 +106,7 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: "Promotion ID is required" }, { status: 400 })
     }
 
+    const adminDb = getAdminDb()
     await adminDb.collection("promotions").doc(id).delete()
 
     return NextResponse.json({

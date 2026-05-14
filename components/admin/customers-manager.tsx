@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useEffect, useState } from "react"
-import { getFirebaseDb, isFirebaseConfigured } from "@/lib/firebase"
+import { getFirebaseDbSync, isFirebaseConfigured } from "@/lib/firebase"
 import { Loader2, Users, Mail, Phone, Award, Search, Edit } from "lucide-react"
 import {
   Dialog,
@@ -79,7 +79,7 @@ export function CustomersManager() {
       }
 
       try {
-        const db = await getFirebaseDb()
+        const db = getFirebaseDbSync()
         if (!db) {
           if (mounted) setLoading(false)
           return
@@ -129,7 +129,7 @@ export function CustomersManager() {
     setSaving(true)
 
     try {
-      const db = await getFirebaseDb()
+      const db = getFirebaseDbSync()
       if (db) {
         const { doc, updateDoc } = await import("firebase/firestore")
         await updateDoc(doc(db, "users", editingCustomer.id), {

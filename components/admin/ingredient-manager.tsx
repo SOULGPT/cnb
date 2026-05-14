@@ -10,7 +10,7 @@ import { Switch } from "@/components/ui/switch"
 import { Plus, Pencil, Trash2, Loader2, AlertCircle } from "lucide-react"
 import { useState, useEffect } from "react"
 import { subscribeToIngredients, addIngredient, updateIngredient, deleteIngredient } from "@/lib/firebase-ingredients"
-import { isFirebaseConfigured, getFirebaseDb } from "@/lib/firebase"
+import { isFirebaseConfigured, getFirebaseDbSync } from "@/lib/firebase"
 import type { Ingredient, IngredientCategory } from "@/types"
 import {
   Dialog,
@@ -78,7 +78,13 @@ export function IngredientManager() {
         })
       } else {
         const result = await addIngredient(ingredientData)
-        const newIngredient: Ingredient = { ...ingredientData, id: result?.id || `local-${Date.now()}` }
+        const newIngredient: Ingredient = { 
+          ...ingredientData, 
+          id: result?.id || `local-${Date.now()}`,
+          restaurantId: process.env.NEXT_PUBLIC_RESTAURANT_ID || "default",
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        }
         setIngredients((prev) => [...prev, newIngredient])
         toast({
           title: "Ingredient added",
@@ -129,7 +135,7 @@ export function IngredientManager() {
     )
   }
 
-  const isDemo = !isFirebaseConfigured() || !getFirebaseDb()
+  const isDemo = !isFirebaseConfigured() || !getFirebaseDbSync()
 
   return (
     <div className="space-y-4">

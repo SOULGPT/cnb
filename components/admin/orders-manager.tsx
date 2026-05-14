@@ -222,7 +222,7 @@ export function OrdersManager() {
                       {items.length} items - €{(Number(order.totalEur) || 0).toFixed(2)}
                     </div>
                     <div className="text-xs text-muted-foreground">
-                      {order.createdAt && formatDistanceToNow(new Date(order.createdAt), { addSuffix: true })}
+                      {order.createdAt && formatDistanceToNow(new Date(order.createdAt))}
                     </div>
                   </div>
 
@@ -278,13 +278,17 @@ export function OrdersManager() {
                                 className="ml-2 text-xs bg-orange-50 text-orange-700 border-orange-300"
                               >
                                 <Flame className="w-3 h-3 mr-1" />
-                                {SPICE_LEVEL_DISPLAY[item.spiceLevel]?.icon}{" "}
-                                {SPICE_LEVEL_DISPLAY[item.spiceLevel]?.label}
+                                {item.spiceLevel && SPICE_LEVEL_DISPLAY[item.spiceLevel] && (
+                                  <>
+                                    {SPICE_LEVEL_DISPLAY[item.spiceLevel].icon}{" "}
+                                    {SPICE_LEVEL_DISPLAY[item.spiceLevel].label}
+                                  </>
+                                )}
                               </Badge>
                             )}
                           </span>
                           <span className="text-muted-foreground">
-                            €{(Number(item.totalPrice || item.priceEur * item.quantity) || 0).toFixed(2)}
+                            €{(Number(item.totalPrice || (item.menuItem?.priceEur || 0) * item.quantity) || 0).toFixed(2)}
                           </span>
                         </div>
                         {/* Show customizations if any */}

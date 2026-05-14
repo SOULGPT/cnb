@@ -7,7 +7,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { TrendingUp, Users, ShoppingBag, DollarSign, Clock, TrendingDown, BarChart3 } from "lucide-react"
 import { useEffect, useState } from "react"
-import { getFirebaseDb } from "@/lib/firebase"
+import { getFirebaseDbSync } from "@/lib/firebase"
 import { Badge } from "@/components/ui/badge"
 import type { Order } from "@/types"
 import { toDate } from "@/lib/date-utils"
@@ -90,7 +90,7 @@ export function AnalyticsDashboard() {
 
     const setupListener = async () => {
       try {
-        const db = await getFirebaseDb()
+        const db = getFirebaseDbSync()
         if (!db) {
           const localOrders = getLocalOrders()
           calculateStats(localOrders)
@@ -177,7 +177,7 @@ export function AnalyticsDashboard() {
     let pickupOrders = 0
     let dineInOrders = 0
     const customerSet = new Set<string>()
-    const itemCounts: Record<string, { count: number; revenue: number }> = {}
+    const itemCounts: Record<string, { count: number; revenue: number; imageUrl: string }> = {}
     const hourlyCounts: Record<number, number> = {}
     const categoryCounts: Record<string, number> = {}
 
@@ -187,7 +187,7 @@ export function AnalyticsDashboard() {
       }
 
       const orderDate = toDate(order.createdAt)
-      const orderTotal = Number(order.total || order.totalEur || 0)
+      const orderTotal = Number(order.totalEur || 0)
 
       if (completedStatuses.includes(order.status)) {
         totalRevenue += orderTotal
@@ -201,7 +201,7 @@ export function AnalyticsDashboard() {
       if (order.status === "placed" || order.status === "accepted" || order.status === "preparing") pendingOrders++
       if (order.status === "cancelled") {
         cancelledOrders++
-        if (order.refundAmount) totalRefunds += order.refundAmount
+        if ((order as any).refundAmount) totalRefunds += (order as any).refundAmount
       }
 
       if (order.paymentMethod === "cash") cashPayments += orderTotal
@@ -212,7 +212,7 @@ export function AnalyticsDashboard() {
 
       if (order.type === "delivery") deliveryOrders++
       else if (order.type === "pickup") pickupOrders++
-      else if (order.type === "dine-in") dineInOrders++
+      else if (order.type === "dinein") dineInOrders++
 
       if (order.userId) customerSet.add(order.userId)
 
@@ -220,7 +220,7 @@ export function AnalyticsDashboard() {
       orderItems.forEach((item: any) => {
         const itemName = item.name || "Unknown"
         if (!itemCounts[itemName]) {
-          itemCounts[itemName] = { count: 0, revenue: 0 }
+          itemCounts[itemName] = { count: 0, revenue: 0, imageUrl: item.imageUrl || "/placeholder.svg" }
         }
         itemCounts[itemName].count += item.quantity || 1
         itemCounts[itemName].revenue += (item.priceEur || 0) * (item.quantity || 1)
@@ -236,7 +236,7 @@ export function AnalyticsDashboard() {
     })
 
     const topItems = Object.entries(itemCounts)
-      .map(([name, data]) => ({ name, ...data }))
+      .map(([name, data]) => ({ id: name, name, ...data }))
       .sort((a, b) => b.count - a.count)
       .slice(0, 5)
 

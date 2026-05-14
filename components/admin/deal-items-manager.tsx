@@ -83,7 +83,7 @@ export function DealItemsManager({ items, onChange }: DealItemsManagerProps) {
     setItemForm({
       menuItemId: item.menuItemId,
       name: item.name,
-      category: item.categoryId,
+      category: item.category,
       quantity: item.quantity,
       imageUrl: item.imageUrl,
       required: item.required,

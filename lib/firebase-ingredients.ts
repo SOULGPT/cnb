@@ -1,10 +1,10 @@
-import { getFirebaseDb, waitForFirebase } from "./firebase"
+import { getFirebaseDbSync, isFirebaseConfigured, waitForFirebase } from "./firebase"
 import type { Ingredient, IngredientCategory } from "@/types"
+import { collection, onSnapshot } from "firebase/firestore"
 
 // Listener sets for real-time updates
 const ingredientListeners: Set<(ingredients: Ingredient[]) => void> = new Set()
 let currentIngredients: Ingredient[] = []
-let ingredientUnsubscribe: (() => void) | null = null
 let isInitialized = false
 
 // Notify all listeners
@@ -39,30 +39,22 @@ async function fetchIngredientsFromAPI(): Promise<Ingredient[]> {
 }
 
 // Setup real-time listener
-async function setupIngredientsFirebaseListener() {
-  if (ingredientUnsubscribe) return
-
-  // Initial load from API
-  if (!isInitialized) {
-    isInitialized = true
-    const ingredients = await fetchIngredientsFromAPI()
-    if (ingredients.length > 0) {
-      notifyIngredientListeners(ingredients)
-    }
+function setupIngredientsFirebaseListener() {
+  const db = getFirebaseDbSync()
+  if (!db) {
+    waitForFirebase().then(ready => {
+        if (ready) {
+            const asyncDb = getFirebaseDbSync()
+            if (asyncDb) startListener(asyncDb)
+        }
+    })
+    return
   }
+  startListener(db)
 
-  // Setup real-time listener
-  const ready = await waitForFirebase(3)
-  if (!ready) return
-
-  const db = await getFirebaseDb()
-  if (!db) return
-
-  try {
-    const { collection, onSnapshot } = await import("firebase/firestore")
-    const ingredientsRef = collection(db, "ingredients")
-
-    ingredientUnsubscribe = onSnapshot(
+  function startListener(dbInstance: any) {
+    const ingredientsRef = collection(dbInstance, "ingredients")
+    return onSnapshot(
       ingredientsRef,
       (snapshot) => {
         const ingredients = snapshot.docs.map((doc) => ({
@@ -77,8 +69,6 @@ async function setupIngredientsFirebaseListener() {
         console.error("[firebase-ingredients] Listener error:", error)
       }
     )
-  } catch (error) {
-    console.error("[firebase-ingredients] Failed to setup listener:", error)
   }
 }
 
@@ -88,6 +78,11 @@ export function subscribeToIngredients(callback: (ingredients: Ingredient[]) => 
 
   if (currentIngredients.length > 0) {
     callback(currentIngredients)
+  } else if (!isInitialized) {
+      isInitialized = true
+      fetchIngredientsFromAPI().then(ingredients => {
+          if (ingredients.length > 0) notifyIngredientListeners(ingredients)
+      })
   }
 
   setupIngredientsFirebaseListener()

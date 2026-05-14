@@ -1,10 +1,11 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { adminDb } from "@/lib/firebase-admin"
+import { getAdminDb } from "@/lib/firebase-admin"
 import { FieldValue } from "firebase-admin/firestore"
 
 // GET - Fetch all banners
 export async function GET() {
   try {
+    const adminDb = getAdminDb()
     const snapshot = await adminDb.collection("banners").orderBy("priority", "desc").get()
 
     const banners = snapshot.docs.map((doc) => {
@@ -45,6 +46,7 @@ export async function POST(request: NextRequest) {
       updatedAt: FieldValue.serverTimestamp(),
     }
 
+    const adminDb = getAdminDb()
     const docRef = await adminDb.collection("banners").add(bannerData)
 
     return NextResponse.json({
@@ -80,6 +82,7 @@ export async function PUT(request: NextRequest) {
       updatedAt: FieldValue.serverTimestamp(),
     }
 
+    const adminDb = getAdminDb()
     await adminDb.collection("banners").doc(body.id).update(bannerData)
 
     return NextResponse.json({
@@ -103,6 +106,7 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: "Banner ID is required" }, { status: 400 })
     }
 
+    const adminDb = getAdminDb()
     await adminDb.collection("banners").doc(id).delete()
 
     return NextResponse.json({

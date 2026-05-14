@@ -8,7 +8,7 @@ import { Loader2, FileText, Download, Mail, Filter } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { formatDistanceToNow } from "@/lib/date-utils"
 import type { Order } from "@/types"
-import { getFirebaseDb, isFirebaseConfigured } from "@/lib/firebase"
+import { getFirebaseDbSync, isFirebaseConfigured } from "@/lib/firebase"
 
 export function InvoicesManager() {
   const [orders, setOrders] = useState<Order[]>([])
@@ -34,7 +34,7 @@ export function InvoicesManager() {
       }
 
       try {
-        const db = await getFirebaseDb()
+        const db = getFirebaseDbSync()
         if (!db) {
           if (mounted) setLoading(false)
           return
@@ -254,7 +254,7 @@ Thank you for your order!
                             {items.length} items • €{(Number(order.totalEur) || 0).toFixed(2)}
                           </div>
                           <div className="text-xs text-muted-foreground">
-                            {order.createdAt && formatDistanceToNow(new Date(order.createdAt), { addSuffix: true })}
+                            {order.createdAt && formatDistanceToNow(new Date(order.createdAt))}
                           </div>
                         </div>
 

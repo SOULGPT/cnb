@@ -32,6 +32,7 @@ export const ORDER_STATUS_LABELS = {
   out_for_delivery: "Out for Delivery",
   delivered: "Delivered",
   cancelled: "Cancelled",
+  picked_up: "Picked Up",
 }
 
 export const MENU_CATEGORIES = [

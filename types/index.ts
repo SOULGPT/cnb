@@ -20,6 +20,7 @@ export interface Address {
   lat?: number
   lng?: number
   isDefault: boolean
+  instructions?: string
 }
 
 export interface Branch {
@@ -30,7 +31,7 @@ export interface Branch {
   lat: number
   lng: number
   openHours: {
-    [key: string]: { open: string; close: string }
+    [key: string]: string | { open: string; close: string }
   }
   isActive: boolean
 }
@@ -41,6 +42,7 @@ export interface MenuCategory {
   description?: string
   order: number
   imageUrl?: string
+  published?: boolean
 }
 
 export interface MenuItem {
@@ -59,6 +61,13 @@ export interface MenuItem {
   allowedRemovals?: string[] // Ingredients that can be removed for free
   customOptions?: CustomOption[] // Available extras with prices
   customizations?: Customization[]
+  spicyLevel?: number
+  isVegetarian?: boolean
+  isVegan?: boolean
+  isGlutenFree?: boolean
+  calories?: number | null
+  preparationTime?: number
+  allergens?: string[]
 }
 
 export interface CustomOption {
@@ -97,6 +106,9 @@ export interface CartItem {
   dealSelections?: DealSelection[]
   removedItems?: string[]
   totalPrice: number
+  name?: string
+  imageUrl?: string
+  specialInstructions?: string
 }
 
 export interface DealSelection {
@@ -120,8 +132,8 @@ export interface Order {
   items: CartItem[]
   totalEur: number
   status: OrderStatus
-  type: "pickup" | "delivery" | "dinein" // Added "dinein" type
-  tableNumber?: string // Added table number for dine-in orders
+  type: "pickup" | "delivery" | "dinein"
+  tableNumber?: string
   address?: Address | null
   paymentStatus: "pending" | "paid" | "failed" | "refunded"
   paymentMethod?: string
@@ -129,14 +141,16 @@ export interface Order {
   discount?: number
   loyaltyPointsUsed?: number
   loyaltyPointsEarned?: number
-  note?: string // Added note field for order-level instructions
+  note?: string
   estimatedTime?: Date
   courierLocation?: { lat: number; lng: number }
+  deliveryFee?: number
+  cancellationReason?: string
   createdAt: Date
   updatedAt: Date
 }
 
-export type OrderStatus = "placed" | "accepted" | "preparing" | "ready" | "out_for_delivery" | "delivered" | "cancelled"
+export type OrderStatus = "placed" | "accepted" | "preparing" | "ready" | "out_for_delivery" | "delivered" | "cancelled" | "picked_up"
 
 export interface Promotion {
   id: string

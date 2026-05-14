@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { getFirebaseDb, isFirebaseConfigured } from "@/lib/firebase"
+import { getFirebaseDbSync, isFirebaseConfigured } from "@/lib/firebase"
 import type { Order } from "@/types"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -56,7 +56,7 @@ export function OrderTracking({ orderId }: OrderTrackingProps) {
           return
         }
 
-        const db = await getFirebaseDb()
+        const db = getFirebaseDbSync()
         if (!db) {
           if (!found) setError("Order not found")
           setLoading(false)

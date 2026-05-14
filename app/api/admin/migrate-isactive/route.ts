@@ -1,14 +1,12 @@
 import { NextResponse } from "next/server"
-import { adminDb } from "@/lib/firebase-admin"
+import { getAdminDb } from "@/lib/firebase-admin"
 
 export const dynamic = "force-dynamic"
 
 // POST - Migrate all items to add isActive field based on published field
 export async function POST() {
   try {
-    if (!adminDb) {
-      return NextResponse.json({ error: "Database not configured" }, { status: 500 })
-    }
+    const adminDb = getAdminDb()
 
     const results = {
       menuItems: { updated: 0, total: 0 },

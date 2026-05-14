@@ -1,5 +1,6 @@
-import { getFirebaseDb, isFirebaseConfigured } from "./firebase"
+import { getFirebaseDbSync, isFirebaseConfigured } from "./firebase"
 import type { MenuItem, Order, Promotion } from "@/types"
+import { collection, query, where, orderBy, onSnapshot, addDoc, doc, updateDoc, deleteDoc, serverTimestamp, getDocs, Timestamp, limit } from "firebase/firestore"
 
 export const RESTAURANT_ID = process.env.NEXT_PUBLIC_RESTAURANT_ID || "curry-burger-main"
 
@@ -20,92 +21,81 @@ export interface FirestoreMenuItem {
 }
 
 export function subscribeToPublishedItems(callback: (items: MenuItem[]) => void) {
-  const db = getFirebaseDb()
+  const db = getFirebaseDbSync()
   if (!isFirebaseConfigured() || !db) {
     return () => {}
   }
 
-  let unsubscribe: (() => void) | undefined
+  const itemsRef = collection(db, "restaurants", RESTAURANT_ID, "items")
+  const q = query(itemsRef, where("published", "==", true), orderBy("title"))
 
-  import("firebase/firestore")
-    .then(({ collection, query, where, orderBy, onSnapshot }) => {
-      const itemsRef = collection(db, "restaurants", RESTAURANT_ID, "items")
-      const q = query(itemsRef, where("published", "==", true), orderBy("title"))
+  const unsubscribe = onSnapshot(
+    q,
+    (snapshot) => {
+      const items = snapshot.docs.map((doc) => {
+        const data = doc.data()
+        return {
+          id: doc.id,
+          name: data.title || "Unknown Item",
+          description: data.description || "",
+          priceEur: Number(data.price) || 0,
+          imageUrl: data.imageUrl || "/placeholder.svg",
+          categoryId: data.categoryId || "uncategorized",
+          published: data.published ?? true,
+          orderCount: data.orderCount || 0,
+          available: data.published ?? true,
+        }
+      }) as MenuItem[]
 
-      unsubscribe = onSnapshot(
-        q,
-        (snapshot) => {
-          const items = snapshot.docs.map((doc) => ({
-            id: doc.id,
-            name: doc.data().title,
-            description: doc.data().description,
-            priceEur: doc.data().price,
-            imageUrl: doc.data().imageUrl,
-            categoryId: doc.data().categoryId,
-            published: doc.data().published,
-            orderCount: doc.data().orderCount || 0,
-            available: doc.data().published,
-          })) as MenuItem[]
+      callback(items)
+    },
+    (error) => {
+      console.error("Error subscribing to items:", error)
+    },
+  )
 
-          callback(items)
-        },
-        (error) => {
-          console.error("Error subscribing to items:", error)
-        },
-      )
-    })
-    .catch(() => {})
-
-  return () => {
-    if (unsubscribe) unsubscribe()
-  }
+  return unsubscribe
 }
 
 export function subscribeToAllItems(callback: (items: MenuItem[]) => void) {
-  const db = getFirebaseDb()
+  const db = getFirebaseDbSync()
   if (!isFirebaseConfigured() || !db) return () => {}
 
-  let unsubscribe: (() => void) | undefined
+  const itemsRef = collection(db, "restaurants", RESTAURANT_ID, "items")
+  const q = query(itemsRef, orderBy("title"))
 
-  import("firebase/firestore")
-    .then(({ collection, query, orderBy, onSnapshot }) => {
-      const itemsRef = collection(db, "restaurants", RESTAURANT_ID, "items")
-      const q = query(itemsRef, orderBy("title"))
+  const unsubscribe = onSnapshot(
+    q,
+    (snapshot) => {
+      const items = snapshot.docs.map((doc) => {
+        const data = doc.data()
+        return {
+          id: doc.id,
+          name: data.title || "Unknown Item",
+          description: data.description || "",
+          priceEur: Number(data.price) || 0,
+          imageUrl: data.imageUrl || "/placeholder.svg",
+          categoryId: data.categoryId || "uncategorized",
+          published: data.published ?? true,
+          orderCount: data.orderCount || 0,
+          available: data.published ?? true,
+        }
+      }) as MenuItem[]
 
-      unsubscribe = onSnapshot(
-        q,
-        (snapshot) => {
-          const items = snapshot.docs.map((doc) => ({
-            id: doc.id,
-            name: doc.data().title,
-            description: doc.data().description,
-            priceEur: doc.data().price,
-            imageUrl: doc.data().imageUrl,
-            categoryId: doc.data().categoryId,
-            published: doc.data().published,
-            orderCount: doc.data().orderCount || 0,
-            available: doc.data().published,
-          })) as MenuItem[]
+      callback(items)
+    },
+    (error) => {
+      console.error("Error subscribing to all items:", error)
+    },
+  )
 
-          callback(items)
-        },
-        (error) => {
-          console.error("Error subscribing to all items:", error)
-        },
-      )
-    })
-    .catch(() => {})
-
-  return () => {
-    if (unsubscribe) unsubscribe()
-  }
+  return unsubscribe
 }
 
 export async function createMenuItem(item: Omit<FirestoreMenuItem, "createdAt" | "updatedAt" | "orderCount">) {
-  const db = getFirebaseDb()
+  const db = getFirebaseDbSync()
   if (!db) throw new Error("Firebase not configured")
 
-  const { collection, addDoc, serverTimestamp } = await import("firebase/firestore")
   const itemsRef = collection(db, "restaurants", RESTAURANT_ID, "items")
   const docRef = await addDoc(itemsRef, {
     ...item,
@@ -118,10 +108,9 @@ export async function createMenuItem(item: Omit<FirestoreMenuItem, "createdAt" |
 }
 
 export async function updateMenuItem(itemId: string, updates: Partial<FirestoreMenuItem>) {
-  const db = getFirebaseDb()
+  const db = getFirebaseDbSync()
   if (!db) throw new Error("Firebase not configured")
 
-  const { doc, updateDoc, serverTimestamp } = await import("firebase/firestore")
   const itemRef = doc(db, "restaurants", RESTAURANT_ID, "items", itemId)
   await updateDoc(itemRef, {
     ...updates,
@@ -130,10 +119,9 @@ export async function updateMenuItem(itemId: string, updates: Partial<FirestoreM
 }
 
 export async function deleteMenuItem(itemId: string) {
-  const db = getFirebaseDb()
+  const db = getFirebaseDbSync()
   if (!db) throw new Error("Firebase not configured")
 
-  const { doc, deleteDoc } = await import("firebase/firestore")
   const itemRef = doc(db, "restaurants", RESTAURANT_ID, "items", itemId)
   await deleteDoc(itemRef)
 }
@@ -154,49 +142,40 @@ export interface FirestoreOffer {
 }
 
 export function subscribeToActiveOffers(callback: (offers: Promotion[]) => void) {
-  const db = getFirebaseDb()
+  const db = getFirebaseDbSync()
   if (!isFirebaseConfigured() || !db) return () => {}
 
-  let unsubscribe: (() => void) | undefined
+  const offersRef = collection(db, "restaurants", RESTAURANT_ID, "offers")
+  const now = Timestamp.now()
+  const q = query(offersRef, where("active", "==", true), where("endsAt", ">", now), orderBy("endsAt"))
 
-  import("firebase/firestore")
-    .then(({ collection, query, where, orderBy, onSnapshot, Timestamp }) => {
-      const offersRef = collection(db, "restaurants", RESTAURANT_ID, "offers")
-      const now = Timestamp.now()
-      const q = query(offersRef, where("active", "==", true), where("endsAt", ">", now), orderBy("endsAt"))
+  const unsubscribe = onSnapshot(
+    q,
+    (snapshot) => {
+      const offers = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        title: doc.data().title,
+        description: doc.data().description || "",
+        imageUrl: doc.data().imageUrl || "",
+        discount: `${doc.data().discountPercent}%`,
+        validUntil: doc.data().endsAt.toDate(),
+        active: doc.data().active,
+      })) as Promotion[]
 
-      unsubscribe = onSnapshot(
-        q,
-        (snapshot) => {
-          const offers = snapshot.docs.map((doc) => ({
-            id: doc.id,
-            title: doc.data().title,
-            description: doc.data().description || "",
-            imageUrl: doc.data().imageUrl || "",
-            discount: `${doc.data().discountPercent}%`,
-            validUntil: doc.data().endsAt.toDate(),
-            active: doc.data().active,
-          })) as Promotion[]
+      callback(offers)
+    },
+    (error) => {
+      console.error("Error subscribing to offers:", error)
+    },
+  )
 
-          callback(offers)
-        },
-        (error) => {
-          console.error("Error subscribing to offers:", error)
-        },
-      )
-    })
-    .catch(() => {})
-
-  return () => {
-    if (unsubscribe) unsubscribe()
-  }
+  return unsubscribe
 }
 
 export async function createOffer(offer: Omit<FirestoreOffer, "createdAt">) {
-  const db = getFirebaseDb()
+  const db = getFirebaseDbSync()
   if (!db) throw new Error("Firebase not configured")
 
-  const { collection, addDoc, serverTimestamp } = await import("firebase/firestore")
   const offersRef = collection(db, "restaurants", RESTAURANT_ID, "offers")
   const docRef = await addDoc(offersRef, {
     ...offer,
@@ -237,10 +216,9 @@ export interface FirestoreOrder {
 }
 
 export async function createOrder(order: Omit<FirestoreOrder, "createdAt" | "restaurantId">) {
-  const db = getFirebaseDb()
+  const db = getFirebaseDbSync()
   if (!db) throw new Error("Firebase not configured")
 
-  const { collection, addDoc, serverTimestamp } = await import("firebase/firestore")
   const ordersRef = collection(db, "orders")
   const docRef = await addDoc(ordersRef, {
     ...order,
@@ -252,96 +230,83 @@ export async function createOrder(order: Omit<FirestoreOrder, "createdAt" | "res
 }
 
 export function subscribeToUserOrders(userId: string, callback: (orders: Order[]) => void) {
-  const db = getFirebaseDb()
+  const db = getFirebaseDbSync()
   if (!isFirebaseConfigured() || !db) return () => {}
 
-  let unsubscribe: (() => void) | undefined
+  const ordersRef = collection(db, "orders")
+  const q = query(ordersRef, where("userId", "==", userId), orderBy("createdAt", "desc"))
 
-  import("firebase/firestore")
-    .then(({ collection, query, where, orderBy, onSnapshot }) => {
-      const ordersRef = collection(db, "orders")
-      const q = query(ordersRef, where("userId", "==", userId), orderBy("createdAt", "desc"))
+  const unsubscribe = onSnapshot(
+    q,
+    (snapshot) => {
+      const orders = snapshot.docs.map((doc) => {
+        const data = doc.data()
+        return {
+          id: doc.id,
+          userId: data.userId,
+          branchId: data.restaurantId,
+          items: (data.items || []).map((item: any) => ({
+            id: item.itemId || Math.random().toString(36).substr(2, 9),
+            menuItem: {
+              id: item.itemId || "unknown",
+              name: item.name || "Unknown Item",
+              priceEur: Number(item.price) || 0,
+              categoryId: "unknown",
+              imageUrl: "/placeholder.svg",
+              available: true
+            },
+            quantity: Number(item.qty) || 1,
+            totalPrice: (Number(item.price) || 0) * (Number(item.qty) || 1),
+            customizations: [],
+          })),
+          totalEur: data.total,
+          status: data.status,
+          type: data.type,
+          createdAt: data.createdAt?.toDate() || new Date(),
+          updatedAt: data.createdAt?.toDate() || new Date(),
+        }
+      }) as Order[]
 
-      unsubscribe = onSnapshot(
-        q,
-        (snapshot) => {
-          const orders = snapshot.docs.map((doc) => {
-            const data = doc.data()
-            return {
-              id: doc.id,
-              userId: data.userId,
-              branchId: data.restaurantId,
-              items: data.items.map((item: any) => ({
-                id: item.itemId,
-                menuItem: {
-                  id: item.itemId,
-                  name: item.name,
-                  priceEur: item.price,
-                },
-                quantity: item.qty,
-                totalPrice: item.price * item.qty,
-              })),
-              totalEur: data.total,
-              status: data.status,
-              type: data.type,
-              createdAt: data.createdAt?.toDate() || new Date(),
-              updatedAt: data.createdAt?.toDate() || new Date(),
-            }
-          }) as Order[]
+      callback(orders)
+    },
+    (error) => {
+      console.error("Error subscribing to user orders:", error)
+    },
+  )
 
-          callback(orders)
-        },
-        (error) => {
-          console.error("Error subscribing to user orders:", error)
-        },
-      )
-    })
-    .catch(() => {})
-
-  return () => {
-    if (unsubscribe) unsubscribe()
-  }
+  return unsubscribe
 }
 
 export function subscribeToRestaurantOrders(callback: (orders: any[]) => void) {
-  const db = getFirebaseDb()
+  const db = getFirebaseDbSync()
   if (!isFirebaseConfigured() || !db) return () => {}
 
-  let unsubscribe: (() => void) | undefined
+  const ordersRef = collection(db, "orders")
+  const q = query(ordersRef, where("restaurantId", "==", RESTAURANT_ID), orderBy("createdAt", "desc"), limit(50))
 
-  import("firebase/firestore")
-    .then(({ collection, query, where, orderBy, limit, onSnapshot }) => {
-      const ordersRef = collection(db, "orders")
-      const q = query(ordersRef, where("restaurantId", "==", RESTAURANT_ID), orderBy("createdAt", "desc"), limit(50))
+  const unsubscribe = onSnapshot(
+    q,
+    (snapshot) => {
+      const orders = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+        createdAt: doc.data().createdAt?.toDate(),
+      }))
 
-      unsubscribe = onSnapshot(
-        q,
-        (snapshot) => {
-          const orders = snapshot.docs.map((doc) => ({
-            id: doc.id,
-            ...doc.data(),
-            createdAt: doc.data().createdAt?.toDate(),
-          }))
+      callback(orders)
+    },
+    (error) => {
+      console.error("Error subscribing to restaurant orders:", error)
+    },
+  )
 
-          callback(orders)
-        },
-        (error) => {
-          console.error("Error subscribing to restaurant orders:", error)
-        },
-      )
-    })
-    .catch(() => {})
-
-  return () => {
-    if (unsubscribe) unsubscribe()
-  }
+  return unsubscribe
 }
 
 export async function updateOrderStatus(orderId: string, status: string) {
-  const db = getFirebaseDb()
+  const db = getFirebaseDbSync()
   if (!db) throw new Error("Firebase not configured")
 
-  const { doc, updateDoc } = await import("firebase/firestore")
   const orderRef = doc(db, "orders", orderId)
   await updateDoc(orderRef, { status })
 }
@@ -351,26 +316,28 @@ export async function updateOrderStatus(orderId: string, status: string) {
 // ============================================
 
 export async function getPopularItems(limitCount = 4): Promise<MenuItem[]> {
-  const db = getFirebaseDb()
+  const db = getFirebaseDbSync()
   if (!isFirebaseConfigured() || !db) return []
 
   try {
-    const { collection, query, where, orderBy, limit, getDocs } = await import("firebase/firestore")
     const itemsRef = collection(db, "restaurants", RESTAURANT_ID, "items")
     const q = query(itemsRef, where("published", "==", true), orderBy("orderCount", "desc"), limit(limitCount))
 
     const snapshot = await getDocs(q)
-    const items = snapshot.docs.map((doc) => ({
-      id: doc.id,
-      name: doc.data().title,
-      description: doc.data().description,
-      priceEur: doc.data().price,
-      imageUrl: doc.data().imageUrl,
-      categoryId: doc.data().categoryId,
-      published: doc.data().published,
-      orderCount: doc.data().orderCount || 0,
-      available: true,
-    })) as MenuItem[]
+    const items = snapshot.docs.map((doc) => {
+      const data = doc.data()
+      return {
+        id: doc.id,
+        name: data.title || "Unknown Item",
+        description: data.description || "",
+        priceEur: Number(data.price) || 0,
+        imageUrl: data.imageUrl || "/placeholder.svg",
+        categoryId: data.categoryId || "uncategorized",
+        published: data.published ?? true,
+        orderCount: data.orderCount || 0,
+        available: true,
+      }
+    }) as MenuItem[]
 
     return items
   } catch (error) {

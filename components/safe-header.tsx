@@ -12,7 +12,7 @@ export function SafeHeader() {
         paddingTop: 'max(44px, env(safe-area-inset-top, 44px))' 
       }}
     >
-      <TopNav isWrapped />
+      <TopNav />
     </div>
   )
 }

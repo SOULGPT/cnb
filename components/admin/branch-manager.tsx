@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Plus, Pencil, Trash2, Loader2, MapPin } from "lucide-react"
 import { useState, useEffect } from "react"
-import { getFirebaseDb, isFirebaseConfigured } from "@/lib/firebase"
+import { getFirebaseDbSync, isFirebaseConfigured } from "@/lib/firebase"
 import type { Branch } from "@/types"
 import {
   Dialog,
@@ -34,6 +34,7 @@ function getLocalBranches(): Branch[] {
       lat: 51.5074,
       lng: -0.1278,
       openHours: { monday: "10:00 AM - 10:00 PM" },
+      isActive: true,
     },
   ]
 }
@@ -68,7 +69,7 @@ export function BranchManager() {
       }
 
       try {
-        const db = await getFirebaseDb()
+        const db = getFirebaseDbSync()
         if (!db) {
           if (mounted) setLoading(false)
           return
@@ -118,10 +119,11 @@ export function BranchManager() {
         saturday: formData.get("hours") as string,
         sunday: formData.get("hours") as string,
       },
+      isActive: true,
     }
 
     try {
-      const db = await getFirebaseDb()
+      const db = getFirebaseDbSync()
 
       if (editingBranch) {
         // Update existing branch
@@ -167,7 +169,7 @@ export function BranchManager() {
     if (!confirm("Are you sure you want to delete this branch?")) return
 
     try {
-      const db = await getFirebaseDb()
+      const db = getFirebaseDbSync()
       if (db) {
         const { deleteDoc, doc } = await import("firebase/firestore")
         await deleteDoc(doc(db, "branches", id))
@@ -243,7 +245,11 @@ export function BranchManager() {
                       id="hours"
                       name="hours"
                       placeholder="e.g., 10:00 AM - 10:00 PM"
-                      defaultValue={editingBranch?.openHours?.monday}
+                      defaultValue={typeof editingBranch?.openHours?.monday === "string" 
+                        ? editingBranch.openHours.monday 
+                        : (editingBranch?.openHours?.monday as any)?.open 
+                          ? `${(editingBranch?.openHours?.monday as any).open} - ${(editingBranch?.openHours?.monday as any).close}`
+                          : ""}
                       required
                     />
                   </div>
@@ -278,7 +284,11 @@ export function BranchManager() {
                         <p className="text-sm text-muted-foreground mt-1">{branch.address}</p>
                         <p className="text-sm text-muted-foreground">{branch.phone}</p>
                         <p className="text-sm text-muted-foreground mt-2">
-                          Hours: {branch.openHours?.monday || "Not set"}
+                          Hours: {typeof branch.openHours?.monday === "string" 
+                            ? branch.openHours.monday 
+                            : (branch.openHours?.monday as any)?.open 
+                              ? `${(branch.openHours?.monday as any).open} - ${(branch.openHours?.monday as any).close}`
+                              : "Not set"}
                         </p>
                       </div>
                       <div className="flex gap-2">

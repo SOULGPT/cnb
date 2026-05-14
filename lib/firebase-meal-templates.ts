@@ -1,54 +1,44 @@
-import { getFirebaseDb, isFirebaseConfigured } from "./firebase"
+import { getFirebaseDbSync, isFirebaseConfigured } from "./firebase"
 import type { MealTemplate } from "@/types"
+import { collection, query, where, orderBy, onSnapshot, addDoc, doc, updateDoc, deleteDoc, Timestamp } from "firebase/firestore"
 
 const RESTAURANT_ID = process.env.NEXT_PUBLIC_RESTAURANT_ID || "default"
 
 // Subscribe to meal templates with real-time updates
 export function subscribeToMealTemplates(callback: (templates: MealTemplate[]) => void) {
-  const db = getFirebaseDb()
+  const db = getFirebaseDbSync()
 
   if (!isFirebaseConfigured() || !db) {
     callback([])
     return () => {}
   }
 
-  let unsubscribe: (() => void) | undefined
+  const q = query(collection(db, "meal_templates"), where("restaurantId", "==", RESTAURANT_ID), orderBy("name"))
 
-  import("firebase/firestore")
-    .then(({ collection, query, where, orderBy, onSnapshot }) => {
-      const q = query(collection(db, "meal_templates"), where("restaurantId", "==", RESTAURANT_ID), orderBy("name"))
-
-      unsubscribe = onSnapshot(q, (snapshot) => {
-        const templates: MealTemplate[] = []
-        snapshot.forEach((doc) => {
-          const data = doc.data()
-          templates.push({
-            id: doc.id,
-            ...data,
-            createdAt: data.createdAt?.toDate() || new Date(),
-            updatedAt: data.updatedAt?.toDate() || new Date(),
-          } as MealTemplate)
-        })
-        callback(templates)
-      })
+  const unsubscribe = onSnapshot(q, (snapshot) => {
+    const templates: MealTemplate[] = []
+    snapshot.forEach((doc) => {
+      const data = doc.data()
+      templates.push({
+        id: doc.id,
+        ...data,
+        createdAt: data.createdAt?.toDate() || new Date(),
+        updatedAt: data.updatedAt?.toDate() || new Date(),
+      } as MealTemplate)
     })
-    .catch(() => {
-      callback([])
-    })
+    callback(templates)
+  })
 
-  return () => {
-    if (unsubscribe) unsubscribe()
-  }
+  return unsubscribe
 }
 
 // Add new meal template
 export async function addMealTemplate(template: Omit<MealTemplate, "id" | "createdAt" | "updatedAt" | "restaurantId">) {
-  const db = getFirebaseDb()
+  const db = getFirebaseDbSync()
   if (!db) throw new Error("Firebase not configured")
 
-  const { collection, addDoc, Timestamp } = await import("firebase/firestore")
   const now = Timestamp.now()
-  const data = {
+  const data: any = {
     ...template,
     restaurantId: RESTAURANT_ID,
     createdAt: now,
@@ -57,8 +47,8 @@ export async function addMealTemplate(template: Omit<MealTemplate, "id" | "creat
 
   // Remove undefined fields
   Object.keys(data).forEach((key) => {
-    if (data[key as keyof typeof data] === undefined) {
-      delete data[key as keyof typeof data]
+    if (data[key] === undefined) {
+      delete data[key]
     }
   })
 
@@ -67,20 +57,19 @@ export async function addMealTemplate(template: Omit<MealTemplate, "id" | "creat
 
 // Update meal template
 export async function updateMealTemplate(id: string, updates: Partial<MealTemplate>) {
-  const db = getFirebaseDb()
+  const db = getFirebaseDbSync()
   if (!db) throw new Error("Firebase not configured")
 
-  const { doc, updateDoc, Timestamp } = await import("firebase/firestore")
   const templateRef = doc(db, "meal_templates", id)
-  const data = {
+  const data: any = {
     ...updates,
     updatedAt: Timestamp.now(),
   }
 
   // Remove undefined fields
   Object.keys(data).forEach((key) => {
-    if (data[key as keyof typeof data] === undefined) {
-      delete data[key as keyof typeof data]
+    if (data[key] === undefined) {
+      delete data[key]
     }
   })
 
@@ -89,10 +78,9 @@ export async function updateMealTemplate(id: string, updates: Partial<MealTempla
 
 // Delete meal template
 export async function deleteMealTemplate(id: string) {
-  const db = getFirebaseDb()
+  const db = getFirebaseDbSync()
   if (!db) throw new Error("Firebase not configured")
 
-  const { doc, deleteDoc } = await import("firebase/firestore")
   const templateRef = doc(db, "meal_templates", id)
   return await deleteDoc(templateRef)
 }

@@ -1,9 +1,9 @@
 // This prevents the "Failed to load firebase" error in v0 preview
 
-type FirebaseApp = any
-type Auth = any
-type Firestore = any
-type FirebaseStorage = any
+import type { FirebaseApp } from "firebase/app"
+import type { Auth } from "firebase/auth"
+import type { Firestore } from "firebase/firestore"
+import type { FirebaseStorage } from "firebase/storage"
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "",

@@ -33,7 +33,7 @@ export function PromotionCard({ promotion }: PromotionCardProps) {
 
         <div className="flex items-center gap-2 text-xs text-muted-foreground mb-4">
           <Calendar className="w-4 h-4" />
-          <span>Valid until {promotion.validUntil && format(promotion.validUntil)}</span>
+          <span>Valid until {promotion.validUntil && format(new Date(promotion.validUntil), 'dd/MM/yyyy')}</span>
         </div>
 
         <Link href="/menu">

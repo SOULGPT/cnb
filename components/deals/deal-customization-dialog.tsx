@@ -7,7 +7,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { ShoppingCart } from "lucide-react"
-import type { Deal } from "@/types"
+import type { Deal, MenuItem } from "@/types"
 import { useCart } from "@/contexts/cart-context"
 import { useToast } from "@/hooks/use-toast"
 
@@ -54,17 +54,28 @@ export function DealCustomizationDialog({ deal, open, onOpenChange }: DealCustom
       }
     })
 
+    const menuItem: MenuItem = {
+      id: deal.id,
+      categoryId: "deals",
+      name: deal.title,
+      priceEur: deal.priceEur,
+      imageUrl: deal.imageUrl || "/placeholder.svg",
+      available: true,
+    }
+
     addItem({
       id: `deal-${deal.id}-${Date.now()}`,
-      name: deal.title,
-      price: totalPrice,
+      menuItem,
       quantity: 1,
-      imageUrl: deal.imageUrl,
       customizations: customizations.map((c) => ({
         customizationId: c.itemName,
         customizationName: c.itemName,
         options: [{ id: "1", name: c.selectedOption, priceEur: 0 }],
       })),
+      isDeal: true,
+      dealId: deal.id,
+      dealTitle: deal.title,
+      totalPrice: totalPrice,
     })
 
     toast({

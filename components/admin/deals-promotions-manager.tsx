@@ -377,14 +377,14 @@ export function DealsPromotionsManager() {
         }
       }
 
-      const bannerData: Partial<Banner> = {
+      const bannerData: Omit<Banner, "id"> & { id?: string } = {
         title: bannerForm.title,
         subtitle: bannerForm.subtitle || undefined,
-        imageUrl: finalImageUrl || undefined,
+        imageUrl: finalImageUrl || "/placeholder.svg",
         linkUrl: bannerForm.linkUrl || undefined,
         linkText: bannerForm.linkText || undefined,
         active: bannerForm.active,
-        priority: bannerForm.priority,
+        priority: Number(bannerForm.priority) || 0,
       }
 
       if (editingBanner?.id) {

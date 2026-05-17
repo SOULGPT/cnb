@@ -8,7 +8,6 @@ const config: CapacitorConfig = {
     url: 'https://curryandburger.vercel.app',
     cleartext: true
   },
-  bundledWebRuntime: false,
   ios: {
     contentInset: 'never',
   },

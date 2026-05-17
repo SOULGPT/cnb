@@ -48,7 +48,7 @@ export function OrderCard({ order }: OrderCardProps) {
           <div className="flex items-center gap-4 text-sm text-muted-foreground">
             <span className="flex items-center gap-1">
               <Clock className="w-4 h-4" />
-              {order.createdAt && format(order.createdAt)}
+              {order.createdAt && format(new Date(order.createdAt), "PPp")}
             </span>
             <span className="flex items-center gap-1">
               <Package className="w-4 h-4" />

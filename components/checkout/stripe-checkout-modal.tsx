@@ -44,13 +44,17 @@ export function StripeCheckoutModal({ open, onOpenChange, orderData, onPaymentCo
         </DialogHeader>
 
         <div className="mt-4">
-          <EmbeddedCheckoutProvider stripe={stripePromise} options={{ fetchClientSecret }}>
-            <EmbeddedCheckout
-              onComplete={() => {
+          <EmbeddedCheckoutProvider 
+            stripe={stripePromise} 
+            options={{ 
+              fetchClientSecret,
+              onComplete: () => {
                 console.log("[v0 Stripe] Payment completed!")
                 onPaymentComplete()
-              }}
-            />
+              }
+            }}
+          >
+            <EmbeddedCheckout />
           </EmbeddedCheckoutProvider>
         </div>
       </DialogContent>

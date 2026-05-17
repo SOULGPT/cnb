@@ -38,6 +38,8 @@ function getLocalCoupons(): Coupon[] {
       validFrom: new Date(),
       validTo: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
       active: true,
+      usagePerCustomer: "single",
+      usedBy: [],
     },
     {
       id: "demo-2",
@@ -47,6 +49,8 @@ function getLocalCoupons(): Coupon[] {
       validFrom: new Date(),
       validTo: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
       active: true,
+      usagePerCustomer: "single",
+      usedBy: [],
     },
   ]
 }

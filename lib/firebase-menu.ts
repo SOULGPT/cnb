@@ -424,5 +424,5 @@ export async function incrementItemOrderCount(itemId: string) {}
 export async function getPopularItems(limit = 4): Promise<MenuItem[]> {
   return currentMenuItems.slice(0, limit)
 }
-export async function initializeMenuData() {}
+export async function initializeMenuData(items?: MenuItem[], categories?: MenuCategory[]) {}
 export function clearDeletedItemIds() {}

@@ -22,7 +22,7 @@ import {
 import { Plus, Pencil, Trash2, Loader2, Tag, Megaphone, ImageIcon, Calendar, Package, Upload, X } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { formatDate } from "@/lib/date-utils"
-import type { Deal, Promotion, DealItem, Banner } from "@/types"
+import type { Deal, Promotion, DealItem } from "@/types"
 import {
   subscribeToDeals,
   subscribeToPromotions,
@@ -33,6 +33,7 @@ import {
   deleteDeal,
   deletePromotion,
   deleteBanner,
+  type Banner,
 } from "@/lib/firebase-deals"
 import { DealItemsManager } from "./deal-items-manager"
 

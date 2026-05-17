@@ -139,9 +139,9 @@ export function CartContent() {
   }
 
   return (
-    <div className="grid gap-8 lg:grid-cols-3">
+    <div className="grid gap-6 lg:grid-cols-3 w-full max-w-full overflow-hidden px-0.5">
       {/* Cart Items */}
-      <div className="lg:col-span-2 space-y-4">
+      <div className="lg:col-span-2 space-y-4 min-w-0 w-full overflow-hidden">
         {items.map((item) => (
           <CartItemCard key={item.id} item={item} />
         ))}
@@ -154,7 +154,7 @@ export function CartContent() {
       </div>
 
       {/* Order Summary */}
-      <div className="lg:col-span-1">
+      <div className="lg:col-span-1 min-w-0 w-full">
         <Card 
           className="p-6 sticky"
           style={{ top: '144px' }}

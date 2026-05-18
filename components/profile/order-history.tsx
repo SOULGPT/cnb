@@ -17,7 +17,7 @@ export function OrderHistory({ userId }: OrderHistoryProps) {
 
   useEffect(() => {
     const fetchOrders = async () => {
-      const db = getFirebaseDb()
+      const db = await getFirebaseDb()
 
       if (!db) {
         const demoOrders = JSON.parse(localStorage.getItem("demoOrders") || "[]")

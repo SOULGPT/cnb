@@ -25,7 +25,7 @@ export function ProfileInfo({ user }: ProfileInfoProps) {
 
   const handleSave = async () => {
     setLoading(true)
-    const db = getFirebaseDb()
+    const db = await getFirebaseDb()
 
     if (!db) {
       // Store in localStorage for demo mode

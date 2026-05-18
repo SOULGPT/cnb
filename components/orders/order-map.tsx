@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import type { Order } from "@/types"
+import { Truck } from "lucide-react"
 
 interface OrderMapProps {
   order: Order

@@ -56,7 +56,7 @@ export function SavedAddresses({ user }: SavedAddressesProps) {
     }
 
     const updatedAddresses = [...addresses, newAddress]
-    const db = getFirebaseDb()
+    const db = await getFirebaseDb()
 
     if (!db) {
       // Store in localStorage for demo mode
@@ -99,7 +99,7 @@ export function SavedAddresses({ user }: SavedAddressesProps) {
 
   const handleDeleteAddress = async (addressId: string) => {
     const updatedAddresses = addresses.filter((addr) => addr.id !== addressId)
-    const db = getFirebaseDb()
+    const db = await getFirebaseDb()
 
     if (!db) {
       localStorage.setItem(`addresses-${user.id}`, JSON.stringify(updatedAddresses))
@@ -139,7 +139,7 @@ export function SavedAddresses({ user }: SavedAddressesProps) {
       ...addr,
       isDefault: addr.id === addressId,
     }))
-    const db = getFirebaseDb()
+    const db = await getFirebaseDb()
 
     if (!db) {
       localStorage.setItem(`addresses-${user.id}`, JSON.stringify(updatedAddresses))

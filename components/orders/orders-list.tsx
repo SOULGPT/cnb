@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { useAuth } from "@/contexts/auth-context"
-import { getFirebaseDb, isFirebaseConfigured } from "@/lib/firebase"
+import { getFirebaseDbSync, isFirebaseConfigured } from "@/lib/firebase"
 import type { Order } from "@/types"
 import { OrderCard } from "./order-card"
 import { Button } from "@/components/ui/button"
@@ -22,7 +22,7 @@ export function OrdersList() {
       return
     }
 
-    const db = getFirebaseDb()
+    const db = getFirebaseDbSync()
 
     if (!isFirebaseConfigured() || !db) {
       const demoOrders = JSON.parse(localStorage.getItem("demoOrders") || "[]")

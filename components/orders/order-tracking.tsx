@@ -17,11 +17,13 @@ import {
   CheckCircle2,
   ChefHat,
   HandPlatter,
+  Printer,
 } from "lucide-react"
 import Link from "next/link"
 import { ORDER_STATUS_LABELS } from "@/lib/constants"
 import { format } from "@/lib/date-utils"
 import { OrderMap } from "./order-map"
+import { ReceiptPrinter } from "@/components/print/receipt-printer"
 
 interface OrderTrackingProps {
   orderId: string
@@ -31,6 +33,15 @@ export function OrderTracking({ orderId }: OrderTrackingProps) {
   const [order, setOrder] = useState<Order | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [isPrinting, setIsPrinting] = useState(false)
+
+  const handlePrint = () => {
+    setIsPrinting(true)
+    setTimeout(() => {
+      window.print()
+      setIsPrinting(false)
+    }, 100)
+  }
 
   useEffect(() => {
     let unsubscribe: (() => void) | undefined
@@ -366,7 +377,7 @@ export function OrderTracking({ orderId }: OrderTrackingProps) {
                   <span className="text-muted-foreground">Payment Method</span>
                   <span className="font-medium capitalize">{order.paymentMethod || "Card"}</span>
                 </div>
-                <div className="flex justify-between text-sm mt-1">
+                <div className="flex justify-between text-sm mt-1 mb-4">
                   <span className="text-muted-foreground">Payment Status</span>
                   <Badge
                     variant={order.paymentStatus === "paid" ? "default" : "secondary"}
@@ -375,6 +386,15 @@ export function OrderTracking({ orderId }: OrderTrackingProps) {
                     {order.paymentStatus || "Pending"}
                   </Badge>
                 </div>
+                
+                <Button 
+                  onClick={handlePrint}
+                  variant="outline" 
+                  className="w-full bg-transparent border-[#E78A00] text-[#E78A00] hover:bg-[#E78A00]/10"
+                >
+                  <Printer className="w-4 h-4 mr-2" />
+                  Print Receipt
+                </Button>
               </div>
             </div>
           </Card>
@@ -398,6 +418,11 @@ export function OrderTracking({ orderId }: OrderTrackingProps) {
           </Card>
         </div>
       </div>
+      
+      {/* Hidden print component */}
+      {isPrinting && order && (
+        <ReceiptPrinter order={order} type="customer" />
+      )}
     </div>
   )
 }

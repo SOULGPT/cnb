@@ -11,6 +11,8 @@ import { Loader2, Package, CheckCircle, Clock, UtensilsCrossed, Flame, MessageSq
 import type { Order } from "@/types"
 import { formatDistanceToNow } from "@/lib/date-utils"
 import { useToast } from "@/hooks/use-toast"
+import { Printer } from "lucide-react"
+import { ReceiptPrinter } from "@/components/print/receipt-printer"
 
 const SPICE_LEVEL_DISPLAY = {
   "no-spicy": { label: "No Spicy", icon: "🌱" },
@@ -46,7 +48,18 @@ export function OrdersManager() {
   const [loading, setLoading] = useState(true)
   const [updating, setUpdating] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState("all")
+  const [printingOrder, setPrintingOrder] = useState<{ order: Order; type: "customer" | "kot" } | null>(null)
   const { toast } = useToast()
+
+  const handlePrint = (order: Order, type: "customer" | "kot") => {
+    setPrintingOrder({ order, type })
+    // Wait for state to update and component to render before printing
+    setTimeout(() => {
+      window.print()
+      // Optional: clear state after printing dialog closes, though not strictly necessary
+      // setTimeout(() => setPrintingOrder(null), 1000)
+    }, 100)
+  }
 
   useEffect(() => {
     let mounted = true
@@ -261,6 +274,27 @@ export function OrdersManager() {
                         Confirm Payment
                       </Button>
                     )}
+
+                    <div className="flex gap-2 w-full sm:w-auto">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handlePrint(order, "customer")}
+                        className="flex-1 sm:flex-none"
+                      >
+                        <Printer className="h-4 w-4 mr-2" />
+                        Receipt
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handlePrint(order, "kot")}
+                        className="flex-1 sm:flex-none"
+                      >
+                        <Printer className="h-4 w-4 mr-2" />
+                        KOT
+                      </Button>
+                    </div>
                   </div>
                 </div>
 
@@ -367,6 +401,11 @@ export function OrdersManager() {
           </Tabs>
         </CardContent>
       </Card>
+
+      {/* Hidden print component */}
+      {printingOrder && (
+        <ReceiptPrinter order={printingOrder.order} type={printingOrder.type} />
+      )}
     </div>
   )
 }

@@ -431,3 +431,43 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ─── Receipt Printing Styles ───────────────────────────────────────────────
+ * Optimized for 80mm POS Thermal Printers
+ * ─────────────────────────────────────────────────────────────────────────*/
+@media print {
+  /* Hide everything except print-only content */
+  body > *:not(.print-only) {
+    display: none !important;
+  }
+  
+  /* Reset page margins for thermal printers */
+  @page {
+    margin: 0;
+    size: 80mm auto; /* 80mm roll width */
+  }
+
+  body {
+    margin: 0;
+    padding: 0;
+    background: white;
+    color: black;
+  }
+
+  .print-only {
+    display: block !important;
+    width: 80mm;
+    margin: 0 auto;
+    padding: 2mm;
+    font-family: 'Courier New', Courier, monospace; /* Ideal for receipts */
+    font-size: 12px;
+    line-height: 1.2;
+    color: black;
+  }
+
+  /* Force exact colors and hide background graphics */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}

@@ -18,6 +18,7 @@ import { StripeCheckoutModal } from "@/components/checkout/stripe-checkout-modal
 import { cn } from "@/lib/utils"
 import { StoreSettings, DEFAULT_STORE_SETTINGS } from "@/types/settings"
 import { getStoreSettings } from "@/lib/settings-utils"
+import { playNotificationSound } from "@/lib/audio"
 
 export function CheckoutForm() {
   const { user, continueAsGuest, isGuest } = useAuth()
@@ -267,6 +268,8 @@ export function CheckoutForm() {
             ? `Table ${dineInParams?.tableNumber} - Please pay at the counter when ready.`
             : `You earned ${Math.floor(finalTotal)} loyalty points`,
       })
+      
+      playNotificationSound()
 
       router.push(`/orders/${orderId}`)
     } catch (error: any) {
@@ -311,6 +314,8 @@ export function CheckoutForm() {
       localStorage.removeItem("dineInParams")
 
       toast({ title: "Payment successful!", description: `You earned ${Math.floor(finalTotal)} loyalty points` })
+      
+      playNotificationSound()
 
       setShowStripeModal(false)
       router.push(`/orders/${pendingOrderId}`)

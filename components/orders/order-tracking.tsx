@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
 import { getFirebaseDbSync, isFirebaseConfigured } from "@/lib/firebase"
 import type { Order } from "@/types"
 import { Card } from "@/components/ui/card"
@@ -24,6 +24,7 @@ import { ORDER_STATUS_LABELS } from "@/lib/constants"
 import { format } from "@/lib/date-utils"
 import { OrderMap } from "./order-map"
 import { ReceiptPrinter } from "@/components/print/receipt-printer"
+import { playNotificationSound } from "@/lib/audio"
 
 interface OrderTrackingProps {
   orderId: string
@@ -34,6 +35,18 @@ export function OrderTracking({ orderId }: OrderTrackingProps) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [isPrinting, setIsPrinting] = useState(false)
+  
+  const previousStatusRef = useRef<string | null>(null)
+
+  useEffect(() => {
+    if (order && order.status !== previousStatusRef.current) {
+      if (previousStatusRef.current !== null) {
+        // Status changed, play sound
+        playNotificationSound()
+      }
+      previousStatusRef.current = order.status
+    }
+  }, [order?.status])
 
   const handlePrint = () => {
     setIsPrinting(true)

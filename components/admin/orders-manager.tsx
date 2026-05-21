@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
 import { getFirebaseDb, isFirebaseConfigured } from "@/lib/firebase"
 import { Loader2, Package, CheckCircle, Clock, UtensilsCrossed, Flame, MessageSquare } from "lucide-react"
 import type { Order } from "@/types"
@@ -13,6 +13,7 @@ import { formatDistanceToNow } from "@/lib/date-utils"
 import { useToast } from "@/hooks/use-toast"
 import { Printer } from "lucide-react"
 import { ReceiptPrinter } from "@/components/print/receipt-printer"
+import { playNotificationSound } from "@/lib/audio"
 
 const SPICE_LEVEL_DISPLAY = {
   "no-spicy": { label: "No Spicy", icon: "🌱" },
@@ -50,6 +51,8 @@ export function OrdersManager() {
   const [activeTab, setActiveTab] = useState("all")
   const [printingOrder, setPrintingOrder] = useState<{ order: Order; type: "customer" | "kot" } | null>(null)
   const { toast } = useToast()
+  
+  const isInitialLoadRef = useRef(true)
 
   const handlePrint = (order: Order, type: "customer" | "kot") => {
     setPrintingOrder({ order, type })
@@ -97,6 +100,15 @@ export function OrdersManager() {
               createdAt: doc.data().createdAt?.toDate(),
               updatedAt: doc.data().updatedAt?.toDate(),
             })) as Order[]
+            
+            if (!isInitialLoadRef.current) {
+              const hasNewOrders = snapshot.docChanges().some(change => change.type === "added")
+              if (hasNewOrders) {
+                playNotificationSound()
+              }
+            } else {
+              isInitialLoadRef.current = false
+            }
 
             setAllOrders(ordersData)
             saveLocalOrders(ordersData)

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react"
+import { createPortal } from "react-dom"
 import { format } from "date-fns"
 import type { Order } from "@/types"
 import { StoreSettings, DEFAULT_STORE_SETTINGS } from "@/types/settings"
@@ -11,14 +12,19 @@ interface ReceiptPrinterProps {
 
 export function ReceiptPrinter({ order, type }: ReceiptPrinterProps) {
   const [settings, setSettings] = useState<StoreSettings>(DEFAULT_STORE_SETTINGS)
+  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
+    setMounted(true)
     async function loadSettings() {
       const config = await getStoreSettings()
       setSettings(config)
     }
     loadSettings()
   }, [])
+
+  if (!mounted) return null
+
 
   // Calculate IVA Breakdown
   const items = Array.isArray(order.items) ? order.items : []
@@ -81,7 +87,7 @@ export function ReceiptPrinter({ order, type }: ReceiptPrinterProps) {
   const totalEur = order.totalEur || Array.from(ivaTotals.values()).reduce((sum, val) => sum + val.gross, 0)
 
   if (type === "customer") {
-    return (
+    return createPortal(
       <div className="print-only" style={{ display: 'none' }}>
         <div className="text-center mb-4">
           <img 
@@ -210,12 +216,13 @@ export function ReceiptPrinter({ order, type }: ReceiptPrinterProps) {
         <div className="text-center font-bold mb-2">====================================</div>
         <div className="text-center mb-2 whitespace-pre-wrap">{settings.footerMessage}</div>
         <div className="text-center font-bold mb-8">====================================</div>
-      </div>
+      </div>,
+      document.body
     )
   }
 
   // KOT Template (Kitchen Order Ticket)
-  return (
+  return createPortal(
     <div className="print-only" style={{ display: 'none' }}>
       <div className="text-center font-bold mb-2">====================================</div>
       <div className="text-center font-bold text-xl mb-2">*** CUCINA / KITCHEN ***</div>
@@ -256,6 +263,8 @@ export function ReceiptPrinter({ order, type }: ReceiptPrinterProps) {
 
       <div className="text-center mb-2">------------------------------------</div>
       <div className="text-center font-bold mb-8">====================================</div>
-    </div>
+    </div>,
+    document.body
   )
 }
+

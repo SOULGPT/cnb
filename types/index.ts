@@ -58,6 +58,7 @@ export interface MenuItem {
   notes?: string
   customizable?: boolean // New field
   ingredients?: string[] // Array of ingredient IDs
+  ivaCategory?: "food" | "drinks" | "delivery" // Italian IVA classification
   allowedRemovals?: string[] // Ingredients that can be removed for free
   customOptions?: CustomOption[] // Available extras with prices
   customizations?: Customization[]
@@ -97,6 +98,7 @@ export interface CartItem {
   quantity: number
   customizations: SelectedCustomization[]
   ingredientCustomizations?: IngredientCustomization[] // New field
+  ivaCategory?: "food" | "drinks" | "delivery" // Italian IVA classification
   spiceLevel?: "no-spicy" | "mild" | "regular" | "extra" // Spice level for Indian/Pakistani dishes
   note?: string // Added note field for customer instructions
   isDeal?: boolean
@@ -131,6 +133,13 @@ export interface Order {
   branchId: string
   items: CartItem[]
   totalEur: number
+  copertoFee?: number
+  ivaBreakdown?: {
+    rate: number;
+    netAmount: number;
+    taxAmount: number;
+    grossAmount: number;
+  }[]
   status: OrderStatus
   type: "pickup" | "delivery" | "dinein"
   tableNumber?: string

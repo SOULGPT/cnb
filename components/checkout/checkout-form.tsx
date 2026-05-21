@@ -16,6 +16,8 @@ import { incrementCouponUsage } from "@/lib/firebase-coupons"
 import { incrementItemOrderCount } from "@/lib/firebase-menu"
 import { StripeCheckoutModal } from "@/components/checkout/stripe-checkout-modal"
 import { cn } from "@/lib/utils"
+import { StoreSettings, DEFAULT_STORE_SETTINGS } from "@/types/settings"
+import { getStoreSettings } from "@/lib/settings-utils"
 
 export function CheckoutForm() {
   const { user, continueAsGuest, isGuest } = useAuth()
@@ -49,8 +51,12 @@ export function CheckoutForm() {
 
   const [showStripeModal, setShowStripeModal] = useState(false)
   const [pendingOrderId, setPendingOrderId] = useState<string | null>(null)
+  
+  const [settings, setSettings] = useState<StoreSettings>(DEFAULT_STORE_SETTINGS)
 
   useEffect(() => {
+    getStoreSettings().then(setSettings)
+
     const dineInData = localStorage.getItem("dineInParams")
     if (dineInData) {
       try {
@@ -102,8 +108,9 @@ export function CheckoutForm() {
     setLoading(true)
 
     try {
-      const deliveryFee = orderType === "delivery" ? 2.5 : 0
-      const finalTotal = totalPrice - discount + deliveryFee
+      const deliveryFee = orderType === "delivery" ? settings.fees.deliveryCharge : 0
+      const copertoFee = orderType === "dinein" && settings.fees.enableCoperto ? settings.fees.copertoPerPerson : 0
+      const finalTotal = totalPrice - discount + deliveryFee + copertoFee
 
       const validItems = items
         .filter((item) => item?.menuItem?.id && item?.menuItem?.name && item?.quantity > 0)
@@ -121,6 +128,37 @@ export function CheckoutForm() {
       const userId = user.id || `guest-${Date.now()}`
       const now = new Date()
 
+      const ivaTotals = new Map<number, { net: number, tax: number, gross: number }>()
+      validItems.forEach(item => {
+        const fullItem = items.find((i) => i.menuItem.id === item.menuItemId)?.menuItem
+        const category = fullItem?.ivaCategory || "food"
+        const rate = category === "drinks" ? settings.ivaRates.drinks : settings.ivaRates.food
+        const gross = item.totalPrice || 0
+        const net = gross / (1 + rate)
+        const tax = gross - net
+        const existing = ivaTotals.get(rate) || { net: 0, tax: 0, gross: 0 }
+        ivaTotals.set(rate, { net: existing.net + net, tax: existing.tax + tax, gross: existing.gross + gross })
+      })
+      if (deliveryFee > 0) {
+        const rate = settings.ivaRates.delivery
+        const net = deliveryFee / (1 + rate)
+        const existing = ivaTotals.get(rate) || { net: 0, tax: 0, gross: 0 }
+        ivaTotals.set(rate, { net: existing.net + net, tax: existing.tax + deliveryFee - net, gross: existing.gross + deliveryFee })
+      }
+      if (copertoFee > 0) {
+        const rate = settings.ivaRates.food
+        const net = copertoFee / (1 + rate)
+        const existing = ivaTotals.get(rate) || { net: 0, tax: 0, gross: 0 }
+        ivaTotals.set(rate, { net: existing.net + net, tax: existing.tax + copertoFee - net, gross: existing.gross + copertoFee })
+      }
+      
+      const ivaBreakdown = Array.from(ivaTotals.entries()).map(([rate, vals]) => ({
+        rate,
+        netAmount: Number.parseFloat(vals.net.toFixed(2)),
+        taxAmount: Number.parseFloat(vals.tax.toFixed(2)),
+        grossAmount: Number.parseFloat(vals.gross.toFixed(2))
+      }))
+
       const orderData: any = {
         userId,
         userEmail: user.email || "guest@demo.com",
@@ -128,6 +166,9 @@ export function CheckoutForm() {
         branchId: dineInParams?.branchId || "default-branch",
         items: validItems,
         totalEur: Number.parseFloat(finalTotal.toFixed(2)),
+        deliveryFee: deliveryFee > 0 ? deliveryFee : undefined,
+        copertoFee: copertoFee > 0 ? copertoFee : undefined,
+        ivaBreakdown,
         status: "placed",
         type: orderType,
         paymentStatus: "pending",
@@ -135,6 +176,7 @@ export function CheckoutForm() {
         createdAt: now,
         updatedAt: now,
       }
+
 
       if (orderType === "dinein" && dineInParams?.tableNumber) orderData.tableNumber = dineInParams.tableNumber
       if (orderType === "delivery" && street && city && postalCode) {
@@ -167,7 +209,11 @@ export function CheckoutForm() {
             note: items.find((i) => i.menuItem.id === item.menuItemId)?.note || null,
           })),
           total: Number.parseFloat(finalTotal.toFixed(2)),
+          deliveryFee: deliveryFee > 0 ? deliveryFee : undefined,
+          copertoFee: copertoFee > 0 ? copertoFee : undefined,
+          ivaBreakdown,
           type: orderType,
+
           paymentMethod: orderType === "dinein" ? "counter" : paymentMethod,
           tableNumber: orderType === "dinein" ? dineInParams?.tableNumber : null,
           customerContact: {
@@ -256,7 +302,9 @@ export function CheckoutForm() {
         } catch {}
       }
 
-      const finalTotal = totalPrice - discount + (orderType === "delivery" ? 2.5 : 0)
+      const deliveryFee = orderType === "delivery" ? settings.fees.deliveryCharge : 0
+      const copertoFee = orderType === "dinein" && settings.fees.enableCoperto ? settings.fees.copertoPerPerson : 0
+      const finalTotal = totalPrice - discount + deliveryFee + copertoFee
 
       clearCart()
       localStorage.removeItem("checkoutData")
@@ -296,8 +344,9 @@ export function CheckoutForm() {
     )
   }
 
-  const deliveryFee = orderType === "delivery" ? 2.5 : 0
-  const finalTotal = totalPrice - discount + deliveryFee
+  const deliveryFee = orderType === "delivery" ? settings.fees.deliveryCharge : 0
+  const copertoFee = orderType === "dinein" && settings.fees.enableCoperto ? settings.fees.copertoPerPerson : 0
+  const finalTotal = totalPrice - discount + deliveryFee + copertoFee
 
   return (
     <>
@@ -486,6 +535,12 @@ export function CheckoutForm() {
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Delivery Fee</span>
                 <span>€{deliveryFee.toFixed(2)}</span>
+              </div>
+            )}
+            {orderType === "dinein" && settings.fees.enableCoperto && (
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Service Fee (Coperto)</span>
+                <span>€{copertoFee.toFixed(2)}</span>
               </div>
             )}
             <div className="border-t pt-2 flex justify-between font-bold text-lg">
